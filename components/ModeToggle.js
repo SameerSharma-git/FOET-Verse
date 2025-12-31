@@ -46,7 +46,7 @@ const Skiper26 = () => {
         </span>
       </div>
 
-      <ThemeToggleButton
+      <ModeToggle
         variant={variant}
         start={start}
         blur={blur}
@@ -458,9 +458,6 @@ export const useThemeToggle = ({
 
     let styleElement = document.getElementById(styleId);
 
-    console.log("style ELement", styleElement);
-    console.log("name", name);
-
     if (!styleElement) {
       styleElement = document.createElement("style");
       styleElement.id = styleId;
@@ -468,8 +465,6 @@ export const useThemeToggle = ({
     }
 
     styleElement.textContent = css;
-
-    console.log("content updated");
   }, []);
 
   const toggleTheme = useCallback(() => {

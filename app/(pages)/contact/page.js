@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/select";
 import { sendEmailAction } from "@/lib/actions/emailActions";
 import { useTheme } from "next-themes";
+import { decodeJWT } from "@/lib/actions/jwt_token";
 
 // --- Zod Schema Definition ---
 const formSchema = z.object({
@@ -66,6 +67,12 @@ const formSchema = z.object({
 export default function ContactPage() {
   const { theme } = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loggedUser, setLoggedUser] = useState(null);
+
+  useEffect(() => {
+    decodeJWT().then(data => data && setLoggedUser(data));
+  }, [])
+
 
   // 1. Initialize react-hook-form
   const form = useForm({
@@ -86,17 +93,18 @@ export default function ContactPage() {
   // 2. Define the submit handler
   async function onSubmit(values) {
     setIsSubmitting(true);
-    console.log("values are: ", values)
-    const emailMessage = `<h1>User with email - ${values.email} has sent a feedback!</h1>
-    <p>Name: ${values.name? values.name : "Not Given"}</p> <p>Category: ${values.category? values.category : "Not Given"}</p> <p>Message is :-</p>
+
+    const senderEmail = loggedUser ? loggedUser.email : values.email;
+
+    const emailMessage = `<h1>User with email - ${senderEmail} has sent a feedback!</h1>
+    <p>Name: ${values.name ? values.name : "Not Given"}</p> <p>Category: ${values.category ? values.category : "Not Given"}</p> <p>Message is :-</p>
     <div>${values.message}</div>`
- 
+
     const sendEmail = await sendEmailAction({
       to: "sameersharm1234@gmail.com",
       subject: values.subject,
       htmlContent: emailMessage,
     })
-    console.log("Email: ", sendEmail)
 
     if (sendEmail.success) {
       toast.success("Feedback Sent! 🚀 Thank you for your message. We'll get back to you soon.", {
@@ -133,14 +141,14 @@ export default function ContactPage() {
       />
       {/* End ToastContainer */}
 
-      <Card className={`shadow-lg border ${theme==="dark"? "border-white": "border-black"}`}>
+      <Card className={`shadow-lg border ${theme === "dark" ? "border-white" : "border-black"}`}>
         <CardHeader className="text-center">
           <Mail className="mx-auto h-12 w-12 text-primary" />
           <CardTitle className="text-3xl font-bold tracking-tight mt-4">
             Share Your Valuable Feedback
           </CardTitle>
           <CardDescription className="text-lg text-muted-foreground mt-2">
-            Let us know what's on your mind—whether it's a bug, a feature request, or an issue with an existing resource.
+            Let us know what&apos;s on your mind—whether it&apos;s a bug, a feature request, or an issue with an existing resource.
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">

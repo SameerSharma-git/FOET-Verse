@@ -21,19 +21,9 @@ import UserProfileDashboard from "@/components/UserProfileDashboard"
 import { decodeJWT } from "@/lib/actions/jwt_token"
 import UserUploadsTable from "@/components/UserUploadsTable"
 import { UpdateProfileForm } from "@/components/UpdateProfileForm"
+import { findUserById } from "@/lib/actions/userActions"
 
 export default function Page() {
-  const [firstSelect, setFirstSelect] = useState(null)
-  const [secondSelect, setSecondSelect] = useState("Profile")
-  const [user, setUser] = useState(null)
-
-  useEffect(() => {
-    decodeJWT().then((data) => {
-      setUser(data)
-      console.log("User is: ", data)
-    })
-  }, [])
-
   const dummyUser = {
     name: "John Doe",
     email: "sameersharm1234@gmail.com",
@@ -49,9 +39,24 @@ export default function Page() {
     reports: ["fileR.pdf", "fileS.pdf"],
   }
 
+  const [firstSelect, setFirstSelect] = useState(null)
+  const [secondSelect, setSecondSelect] = useState("Profile")
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    decodeJWT().then((data) => {
+      if (data) {
+        findUserById(data._id).then(payload => {
+          setUser(payload)
+        });
+      }
+    })
+    // console.log("DATA ", data)
+  }, [])
+
   return (
     <SidebarProvider>
-      <AppSidebar setFirstSelect={setFirstSelect} setSecondSelect={setSecondSelect} />
+      <AppSidebar user={user} secondSelect={secondSelect} setFirstSelect={setFirstSelect} setSecondSelect={setSecondSelect} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">
@@ -87,7 +92,7 @@ export default function Page() {
 
         {secondSelect === "Upload A File" && (
           <section>
-            <div className="min-h-screen pt-10 transition-colors duration-500">
+            <div className="min-h-screen pt-10 md:pt-8 transition-colors duration-500">
               <main className="w-full pb-12 mx-auto px-4 max-w-2xl">
                 <PdfUploader />
               </main>

@@ -45,14 +45,12 @@ const LoginPage = () => {
 
     // Handle form submission
     // The 'data' parameter here will NOW include 'branch', 'year', and 'semester'
-    console.log(pathname.endsWith('/signup') ? '/api/auth/signup' : "/api/auth/login")
     const onSubmit = async (data) => {
         setIsLoading(true); // Start loading
         setErrorMessage(''); // Clear previous errors
         setSuccessMessage(''); // Clear previous success messages
 
         try {
-            console.log(JSON.stringify(data))
             const response = await fetch(pathname.endsWith('/signup') ? '/api/auth/signup' : "/api/auth/login", {
                 method: 'POST',
                 headers: {
@@ -60,11 +58,9 @@ const LoginPage = () => {
                 },
                 body: JSON.stringify(data), // <-- Use 'data' from react-hook-form directly
             });
-            console.log("response is: ", response)
             const responseData = await response.json();
 
             if (response.status === 201) {
-                console.log('Signup successful:', response);
                 pathname.endsWith('/signup') ? setSuccessMessage('Account created successfully! Redirecting...') : setSuccessMessage('Loggedin successfully! Redirecting...')
                 router.push('/dashboard');
                 router.refresh();
@@ -330,7 +326,7 @@ const LoginPage = () => {
                             </>
                         ) : (
                             <>
-                                Don't have an account?
+                                Don&apos;t have an account?
                                 <Link href="/signup" className="font-medium mx-2 text-blue-600 hover:text-blue-500 cursor-pointer">
                                     Signup
                                 </Link>

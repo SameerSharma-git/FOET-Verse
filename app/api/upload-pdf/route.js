@@ -1,21 +1,14 @@
-import { v2 as cloudinary } from 'cloudinary';
+import cloudinary from '@/lib/cloudinary';
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { sendEmailAction } from '@/lib/actions/emailActions';
 import { addFile } from '@/lib/actions/fileActions';
 import { decodeJWT } from '@/lib/actions/jwt_token';
-import { findMongoUserById } from '@/lib/actions/userActions';
+import { findMongoUserById, updateUser } from '@/lib/actions/userActions';
 import { addUploadData } from '@/lib/actions/uploadDataActions';
 
 // Max file size check (10MB)
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
-
-// Configure Cloudinary (Make sure CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET are set in .env)
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 /** Converts a File object's buffer to a Base64 Data URI for programmatic upload. */
 async function bufferToDataURI(buffer, mimeType) {
@@ -58,9 +51,8 @@ export async function POST(request) {
 
         const fileBuffer = await file.arrayBuffer();
         const dataUri = await bufferToDataURI(fileBuffer, file.type);
-        const uniqueFileName = `${uuidv4()}.pdf`;
+        const uniqueFileName = `${uuidv4()}`;
 
-        console.log(orignial_file_name, branch, subject, year, semester, resource_type, uniqueFileName)
 
         const uploadResult = await cloudinary.uploader.upload(dataUri, {
             folder: 'foet-verse/study-resources',
@@ -70,7 +62,6 @@ export async function POST(request) {
             overwrite: false,
         });
 
-        console.log("uploadResult: ", uploadResult)
 
         if (!uploadResult || !uploadResult.secure_url) {
             console.error('Cloudinary upload failed.');
@@ -82,10 +73,10 @@ export async function POST(request) {
 
         // Send Email to User
         let emailSendAction;
-        const emailParameters = { 
-            to: ["sameersharm1234@gmail.com"],
+        const emailParameters = {
+            to: "sameersharm1234@gmail.com",
             subject: "File Uploaded Successfully",
-            htmlContent: `<h2>Your file has been uploaded successfully with Cloudinary Id: ${cloudinaryPublicId} and secure URL: ${notesUrl}</h2>`
+            htmlContent: `<h2>A file has been uploaded successfully on FOET-Verse!</h2><p>Cloudinary Id: ${cloudinaryPublicId}, secure URL: ${notesUrl} and fileName: ${orignial_file_name}</p>`
         }
         sendEmailAction(emailParameters)
             .then(result => emailSendAction = result)
@@ -105,6 +96,7 @@ export async function POST(request) {
             uploadedByUser: userPayload._id,
         }).then(addedFile => {
 
+            updateUser({ _id: userPayload._id }, { $addToSet: { uploads: addedFile.file_id } })
             findMongoUserById(userPayload._id)
                 .then(user => {
                     user.uploads.push(addedFile._id);

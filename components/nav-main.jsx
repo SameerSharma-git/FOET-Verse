@@ -21,6 +21,7 @@ import {
 
 export function NavMain({
   setFirstSelect,
+  secondSelect,
   setSecondSelect,
   items
 }) {
@@ -48,12 +49,12 @@ export function NavMain({
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {item.items?.map((subItem) => (
-                        <SidebarMenuSubItem onClick={() => {setSecondSelect(subItem.title); setFirstSelect(item.title)}} key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
-                            <div className="flex items-center justify-left gap-1 py-2">
+                        <SidebarMenuSubItem onClick={() => { setSecondSelect(subItem.title); setFirstSelect(item.title) }} key={subItem.title}>
+                          <SidebarMenuSubButton className={(subItem.title === secondSelect) && "bg-sidebar-accent text-sidebar-accent-foreground"} asChild>
+                            <div className="flex items-center cursor-pointer justify-left gap-1 py-2">
                               {subItem.icon && (<span className="scale-75"><subItem.icon /></span>)}
                               <span>{subItem.title}</span>
-                              </div>
+                            </div>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}

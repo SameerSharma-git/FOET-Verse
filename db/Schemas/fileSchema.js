@@ -40,7 +40,7 @@ const fileSchema = new mongoose.Schema({
     comments: [
         {
             type: Object,
-            default: {},
+            default: [],
         }
     ],
     upvotes: [
@@ -57,6 +57,11 @@ const fileSchema = new mongoose.Schema({
             default: [],
         }
     ],
+    downloads: {
+        type: Number,
+        required: false,
+        default: 0,
+    },
     reports: [
         {
             type: Object,

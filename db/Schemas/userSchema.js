@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({
   },
   profilePicture: {
     type: String,
-    default: '/images/pexels-eneminess-9418435.jpg' // Provide a default image path
+    default: '/images/profile-pics/13848365.jpg' // Provide a default image path
   },
   course: {
     type: String,
@@ -60,44 +60,49 @@ const userSchema = new mongoose.Schema({
   following: [
     {
       type: mongoose.Schema.Types.ObjectId,
+      default: [],
       ref: 'User',
-      unique: true
     }
   ],
   followers: [
     {
       type: mongoose.Schema.Types.ObjectId,
+      default: [],
       ref: 'User',
-      unique: true
     }
   ],
   uploads: [
     {
       type: mongoose.Schema.Types.ObjectId,
+      default: [],
       ref: 'File',
     }
   ],
   downloads: [
     {
       type: mongoose.Schema.Types.ObjectId,
+      default: [],
       ref: 'File',
     }
   ],
   comments: [
     {
+      default: [],
       type: Object,
     }
   ],
   upvotes: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
+      default: [],
     }
   ],
   downvotes: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
+      default: [],
     }
   ],
 }, {

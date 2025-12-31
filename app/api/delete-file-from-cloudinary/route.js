@@ -1,13 +1,5 @@
 import { NextResponse } from 'next/server';
-import { v2 as cloudinary } from 'cloudinary';
-
-// Configure Cloudinary using environment variables
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true, // Use HTTPS
-});
+import cloudinary from '@/lib/cloudinary';
 
 export async function POST(request) {
 
@@ -25,7 +17,6 @@ export async function POST(request) {
         resource_type: 'image'
     });
 
-    console.log(`Cloudinary deletion result for ID ${public_id}:`, result);
 
     if (result.result === 'ok') {
       return NextResponse.json({ 

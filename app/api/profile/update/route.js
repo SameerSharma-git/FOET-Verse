@@ -1,17 +1,9 @@
 import { NextResponse } from 'next/server';
-import { v2 as cloudinary } from 'cloudinary';
+import cloudinary from '@/lib/cloudinary';
 import User from '@/db/Schemas/userSchema';
 import { dbConnect } from '@/db/dbConnect';
 import bcrypt from "bcrypt";
 import ProfilePic from '@/db/Schemas/profilePictureSchema';
-
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
 
 export async function PUT(request) { // Use PUT for updates
   try {
@@ -52,6 +44,7 @@ export async function PUT(request) { // Use PUT for updates
         cloudinary.uploader.destroy(existingProfilePic.cloudinary_Public_Id, {
           resource_type: 'image'
         });
+        existingProfilePic.deleteOne();
       }
 
       const arrayBuffer = await profilePictureFile.arrayBuffer();
@@ -66,15 +59,17 @@ export async function PUT(request) { // Use PUT for updates
           resolve(result);
         }).end(buffer);
       });
-      updateData.profilePicture = result.secure_url; // Use the new Cloudinary URL
+      updateData.profilePicture = result.secure_url;
 
-      newProfilePicture = new ProfilePic({
-        orifiginal_File_Name: profilePictureFile.name,
+      const newProfilePicture = new ProfilePic({
+        original_File_Name: profilePictureFile.name,
         cloudinary_Public_Id: result.public_id,
         secure_url: result.secure_url,
         uploadedByUser: userId,
       });
       newProfilePicture.save();
+
+
       
     } else if (profilePictureFile === 'null' || profilePictureFile === '') {
       updateData.profilePicture = null; // Set to null in DB to remove the picture
@@ -82,7 +77,7 @@ export async function PUT(request) { // Use PUT for updates
 
 
     // Find and update user in MongoDB
-    const updatedUser = await User.findByIdAndUpdate(userId, { ...updateData, updatedAt: Date.now() }, { new: true, runValidators: true });
+    const updatedUser = await User.findByIdAndUpdate(userId, { ...updateData, updatedAt: Date.now() }, { new: false, runValidators: true });
 
     if (!updatedUser) {
       return NextResponse.json({ message: 'User not found.' }, { status: 404 });

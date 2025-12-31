@@ -3,17 +3,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { Home, Info, Mail, Instagram, Linkedin, Github } from 'lucide-react'; // Importing icons for navigation and social media
-import { useTheme } from 'next-themes';
 import { usePathname } from 'next/navigation';
 import { Notebook } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  const {theme} = useTheme()
   const pathname = usePathname()
 
   return (
-    <footer className={`bg-gray-950 ${theme==="dark"? "border-t-white" : "border-t-black"} ${pathname==='/dashboard' && "md:hidden"} text-gray-300 py-10 px-4 sm:px-6 lg:px-8 rounded-t-xl shadow-lg`}>
+    <footer className={`bg-gray-950 ${pathname==='/dashboard' && "md:hidden"} text-gray-300 py-10 px-4 sm:px-6 lg:px-8 rounded-t-xl shadow-lg`}>
       <div className="max-w-7xl mx-auto grid place-items-center grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
 
         {/* Section 1: Blog Title and Copyright */}
@@ -23,7 +21,10 @@ const Footer = () => {
             &copy; {currentYear} FOET-Verse. All rights reserved.
           </div>
           <div className="text-sm mt-2">
-            Your daily dose of insights and stories.
+            Together, We Share!
+          </div>
+          <div className="text-sm mt-2">
+            Made with lots of love ❤️
           </div>
         </div>
 
@@ -52,13 +53,13 @@ const Footer = () => {
           <h4 className="text-lg font-semibold text-white mb-4">Connect With Us</h4>
           <div className="flex space-x-4">
             {/* Social media icons with hover effects */}
-            <Link href="https://twitter.com/yourprofile" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition duration-300 ease-in-out transform hover:scale-110">
+            <Link href="https://instagram.com/Sameer_Sharma.22" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition duration-300 ease-in-out transform hover:scale-110">
               <Instagram className="h-7 w-7" />
             </Link>
-            <Link href="https://linkedin.com/in/yourprofile" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition duration-300 ease-in-out transform hover:scale-110">
+            <Link href="https://www.linkedin.com/in/sameer-sharma-7b0108371/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition duration-300 ease-in-out transform hover:scale-110">
               <Linkedin className="h-7 w-7" />
             </Link>
-            <Link href="https://github.com/yourprofile" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition duration-300 ease-in-out transform hover:scale-110">
+            <Link href="https://github.com/SameerSharma-git" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition duration-300 ease-in-out transform hover:scale-110">
               <Github className="h-7 w-7" />
             </Link>
           </div>

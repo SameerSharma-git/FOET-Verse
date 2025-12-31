@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from './ui/skeleton';
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from 'next-themes';
 
@@ -12,7 +13,56 @@ const UserProfileDashboard = ({ user }) => {
 
   // Simple check in case user data is loading or missing
   if (!user) {
-    return <div className="p-4 flex items-center justify-center text-gray-500">Loading user data...</div>;
+    return <div className="p-6 md:py-8 md:px-14 space-y-8 container mx-auto">
+
+      {/* -------------------- Main Profile Card Skeleton -------------------- */}
+      <Card className="shadow-2xl border-t-4 border-muted">
+        <CardHeader className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 p-6">
+
+          {/* Avatar Skeleton */}
+          <Skeleton className="w-24 h-24 rounded-full shadow-lg" />
+
+          {/* Name and Email Skeleton */}
+          <div className="flex-1 flex flex-col items-center md:items-start space-y-2">
+            <Skeleton className="h-9 w-48 md:w-64" /> {/* Name */}
+            <Skeleton className="h-5 w-32 md:w-40" /> {/* Email */}
+          </div>
+
+          {/* Badge Skeleton */}
+          <Skeleton className="h-7 w-24 rounded-full" />
+        </CardHeader>
+
+        <Separator />
+
+        {/* User Details Skeleton */}
+        <CardContent className="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex flex-col space-y-2 items-center">
+              <Skeleton className="h-3 w-12" /> {/* Label */}
+              <Skeleton className="h-5 w-20" /> {/* Value */}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* -------------------- Activity Metrics Card Skeleton -------------------- */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <Skeleton className="h-7 w-40" /> {/* Title */}
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="p-4 rounded-lg border border-muted flex flex-col items-center space-y-3">
+                <Skeleton className="h-10 w-12" /> {/* Count */}
+                <Skeleton className="h-4 w-16" />  {/* Label */}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+    </div>
   }
 
   // Helper to get initials for the Avatar Fallback
@@ -33,19 +83,19 @@ const UserProfileDashboard = ({ user }) => {
 
   return (
     <div className="p-6 md:py-8 md:px-14 space-y-8 container mx-auto">
-      
+
       {/* -------------------- Main Profile Card -------------------- */}
-      <Card className={`shadow-2xl border-t-4 ${ theme==="dark"? "border-white": "border-black"}`}>
+      <Card className={`shadow-2xl border-t-4 ${theme === "dark" ? "border-white" : "border-black"}`}>
         <CardHeader className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 p-6">
-          
+
           {/* Avatar and Picture */}
-          <Avatar className={`w-24 h-24 border-4 ${ theme==="dark"? "border-white": "border-black"} shadow-lg`}>
+          <Avatar className={`w-24 h-24 border-4 ${theme === "dark" ? "border-white" : "border-black"} shadow-lg`}>
             <AvatarImage src={user.profilePicture} alt={`${user.name}'s profile`} />
             <AvatarFallback className="text-xl">
               {getInitials(user.name || 'NN')}
             </AvatarFallback>
           </Avatar>
-          
+
           {/* Name and Email */}
           <div className="flex-1 text-center md:text-left">
             <CardTitle className="text-3xl font-extrabold">
@@ -55,24 +105,24 @@ const UserProfileDashboard = ({ user }) => {
               {user.email}
             </p>
           </div>
-          
+
           {/* Status Badge (Example) */}
           <Badge variant="outline" className="text-sm font-semibold px-4 py-1.5 text-green-700 border-green-300">
-            Active Member
+            {user.role === "admin" ? "admin" : "Active Member"}
           </Badge>
         </CardHeader>
-        
+
         <Separator />
 
         {/* User Details */}
         <CardContent className="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
-          
+
           {/* Detail Item */}
           <div className="flex flex-col space-y-1 items-center">
             <span className="text-xs font-medium uppercase">Course</span>
             <span className="text-base font-semibold">{user.course}</span>
           </div>
-          
+
           {/* Detail Item */}
           <div className="flex flex-col space-y-1 items-center">
             <span className="text-xs font-medium uppercase">Branch</span>
@@ -84,7 +134,7 @@ const UserProfileDashboard = ({ user }) => {
             <span className="text-xs font-medium uppercase">Year</span>
             <span className="text-base font-semibold">{user.year}</span>
           </div>
-          
+
           {/* Detail Item */}
           <div className="flex flex-col space-y-1 items-center">
             <span className="text-xs font-medium uppercase">Semester</span>
@@ -110,7 +160,7 @@ const UserProfileDashboard = ({ user }) => {
           </div>
         </CardContent>
       </Card>
-      
+
     </div>
   );
 };

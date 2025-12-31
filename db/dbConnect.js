@@ -7,8 +7,8 @@ import mongoose from 'mongoose';
 
 // This utility function manages the MongoDB connection.
 // It's designed to be used across your server-side code (Server Components, API Routes, other Server Actions).
-const dbName = 'SamNotesDB';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/SamNotesDB';
+const dbName = 'FOETVerse';
+const MONGODB_URI = process.env.MONGODB_URI || `mongodb://localhost:27017/${dbName}`;
 
 // Check if MONGODB_URI is set, otherwise use a default and warn.
 if (!MONGODB_URI) {

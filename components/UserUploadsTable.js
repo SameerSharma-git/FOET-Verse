@@ -6,7 +6,7 @@ import {
     Trash2,
     ArrowUpCircle,
     ArrowDownCircle,
-    MessageSquare,
+    LoaderCircle,
     AlertTriangle,
     CalendarDays,
     Search, // Added for search bar
@@ -44,7 +44,9 @@ import {
 import { findFiles } from '@/lib/actions/fileActions';
 
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
+import { useTheme } from 'next-themes';
+import { updateUser } from '@/lib/actions/userActions';
 
 
 // Define the available resource types for the filter
@@ -131,28 +133,31 @@ const exampleUploads = [
 export default function UserUploadsTable({ user }) { // Using exampleUploads for demonstration
     const [uploads, setUploads] = useState([])
     const [triggerRefresh, setTriggerRefresh] = useState(1)
-
-    if (!user) {
-        return (
-            <p className='font-semibold text-center'>Loading...</p>
-        )
-    }
+    const [isDeleting, setIsDeleting] = useState(false)
+    const { theme } = useTheme();
 
     useEffect(() => {
-      findFiles({uploadedByUser: user._id}).then(files => {
-        console.log("Fetched user uploads:", files, user._id);
-        if (files) {
-            setUploads(files)
-        }
-      })
-    }, [triggerRefresh])
+        findFiles({ uploadedByUser: user._id }).then(files => {
+            if (files) {
+                setUploads(files)
+            }
+        })
+    }, [triggerRefresh, user?._id])
 
     const [searchQuery, setSearchQuery] = useState('');
     const [filterType, setFilterType] = useState('all');
 
+    // if (!user) {
+    //     return (
+    //         <div className='flex items-center justify-center h-[80dvh]'>
+    //             <LoaderCircle className='animate-spin h-8 w-8 text-primary' />
+    //         </div>
+    //     )
+    // }
+
     // Handler for the delete operation (Placeholder)
     const handleDelete = async (fileId, fileCloudinaryId) => {
-        console.log(`Attempting to delete file ID: ${fileId}, Name: ${fileCloudinaryId}`);
+        setIsDeleting(true);
 
         try {
             const response = await axios.delete("api/delete-pdf", {
@@ -163,13 +168,14 @@ export default function UserUploadsTable({ user }) { // Using exampleUploads for
             });
 
             if (response.status === 200) {
-                toast.success(response.data.message || 'PDF deleted successfully!', { autoClose: 3000 });
+                updateUser({ _id: user._id }, { uploads: uploads.filter(id => id !== fileId) })
+                toast.success(response.data.message || 'PDF deleted successfully!', { autoClose: 3000, position: "bottom-right", theme: theme });
             } else if (response.status === 400) {
-                toast.error('Invalid request. File ID and Cloudinary Public ID are required.', { autoClose: 3000 });
+                toast.error('Invalid request. File ID and Cloudinary Public ID are required.', { autoClose: 3000, position: "bottom-right", theme: theme });
             } else if (response.status === 404) {
-                toast.error('PDF not found in database.', { autoClose: 3000 });
+                toast.error('PDF not found in database.', { autoClose: 3000, position: "bottom-right", theme: theme });
             } else {
-                toast.error('Failed to delete PDF. Please try again.', { autoClose: 3000 });
+                toast.error('Failed to delete PDF. Please try again.', { autoClose: 3000, position: "bottom-right", theme: theme });
             }
 
         } catch (error) {
@@ -178,7 +184,8 @@ export default function UserUploadsTable({ user }) { // Using exampleUploads for
             toast.error(errorMessage, { autoClose: 5000 });
         }
         finally {
-            setTriggerRefresh(triggerRefresh+1)
+            setIsDeleting(false);
+            setTriggerRefresh(triggerRefresh + 1)
         }
     };
 
@@ -214,6 +221,7 @@ export default function UserUploadsTable({ user }) { // Using exampleUploads for
     return (
         // Max-width constraint for professionalism on large screens (max-w-7xl)
         <div className="mx-auto max-w-[1500px] mb-10 px-4 sm:px-6 lg:px-8 py-8">
+            <ToastContainer />
 
             <h2 className="text-3xl font-bold tracking-tight mb-6">Your Uploaded Resources 📚</h2>
 
@@ -349,9 +357,15 @@ export default function UserUploadsTable({ user }) { // Using exampleUploads for
                                     {/* Delete Button with Confirmation Dialog */}
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                            <Button variant="destructive" size="sm">
-                                                <Trash2 className="h-4 w-4 mr-1.5" />
-                                                Delete
+                                            <Button disabled={isDeleting} asChild variant="destructive" size="sm">
+                                                {isDeleting ? (
+                                                    <div><LoaderCircle className='animate-spin h-5 w-5' /></div>
+                                                ) : (
+                                                    <div>
+                                                        <Trash2 className="h-4 w-4 mr-1.5" />
+                                                        Delete
+                                                    </div>
+                                                )}
                                             </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>

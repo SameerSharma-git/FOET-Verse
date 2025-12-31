@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useForm } from "react-hook-form";
 import { ToastContainer, toast } from 'react-toastify';
@@ -28,8 +30,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, User, Mail, Lock, BookOpen, Layers, Image as ImageIcon, AlertTriangle, XCircle } from "lucide-react";
+import { Loader2, User, LoaderCircle, Layers, Image as ImageIcon, AlertTriangle, XCircle } from "lucide-react";
 import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
 
 // --- Constants ---
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB in bytes
@@ -54,12 +57,8 @@ const branchOptions = ["CSE", "CSE-AI", "ECE", "EE", "ME", "CE-Civil",];
 
 
 export function UpdateProfileForm({ currentUserData }) {
-
-  if (!currentUserData) {
-    return (
-      <p className='font-semibold text-center'>Fetching Your Profile Data...</p>
-    )
-  }
+  
+  const router = useRouter();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dataToSubmit, setDataToSubmit] = useState(null);
@@ -246,7 +245,7 @@ export function UpdateProfileForm({ currentUserData }) {
 
   return (
     <>
-      <Card className="w-full max-w-[95vw] md:max-w-2xl mx-auto shadow-lg border-2 mb-10 mt-2 md:mt-0">
+      <Card className="w-[95%] xl:w-full max-w-[95vw] md:max-w-2xl mx-auto shadow-lg border-2 mb-10 mt-2 md:mt-0">
         <ToastContainer />
         <CardHeader>
           <CardTitle className="text-3xl font-bold flex items-center">
@@ -254,7 +253,7 @@ export function UpdateProfileForm({ currentUserData }) {
             Update Your Profile
           </CardTitle>
           <CardDescription>
-            Review and update your personal and academic details. Click 'Update Profile' to confirm the changes.
+            Review and update your personal and academic details. Click &apos;Update Profile&apos; to confirm the changes.
           </CardDescription>
         </CardHeader>
         <CardContent>

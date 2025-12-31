@@ -1,20 +1,21 @@
 "use client"
 
+export const dynamic = "force-dynamic";
+
 import * as React from "react"
+import { Suspense } from "react";
 import {
-    // Icons for filters and cards
-    ChevronDownIcon, Filter, Download, BookOpen, Search,
-    ArrowUp, ArrowDown, MessageSquare, // Icons for stats
-    FileText, // Icon for preview fallback
-    Send, // Icon for comment input
+    LoaderCircle, Filter, Download, BookOpen, Search,
+    ArrowUp, ArrowDown, MessageSquare, FileText, Send,
+    ChevronLeft, ChevronRight,
+    Flag
 } from "lucide-react"
 import {
-    // We still use the core hook for state management (filtering, sorting, pagination)
     getCoreRowModel, getFilteredRowModel, getPaginationRowModel,
     getSortedRowModel, useReactTable,
 } from "@tanstack/react-table"
 
-// --- UI Imports (from shadcn/ui) ---
+// --- UI Imports (shadcn/ui) ---
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,665 +26,351 @@ import { Input } from "@/components/ui/input"
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select"
-import {
-    Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
-} from "@/components/ui/dialog"
-// Import Card components for the new layout
-import {
-    Card, CardContent,
-} from "@/components/ui/card"
-import {
-    Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
-} from "@/components/ui/tooltip"
-// New imports for comment section
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import { findFiles } from "@/lib/actions/fileActions"
-import { set } from "mongoose"
+import FileCard from "@/components/UploadedFilesList"
 
+import { findFileById, findFiles } from "@/lib/actions/fileActions"
+import { decodeJWT } from "@/lib/actions/jwt_token"
+import Link from "next/link"
+import { useSearchParams, useRouter } from "next/navigation"
+import ResourceLibrarySkeleton from "@/components/skeletons/ResourceLibrarySkeleton";
 
+// --- CONSTANTS ---
 const RESOURCE_TYPES = ['notes', 'PYQ', 'DPP', 'syllabus', 'marking-scheme', 'prev-year-paper', 'other'];
 
-// --- DUMMY USER DATA (for comments) ---
-const DUMMY_USER_1 = {
-    _id: "u1",
-    name: "Aarav Sharma",
-    profilePicture: "https://i.pravatar.cc/150?img=12",
-    branch: "CSE",
-    year: 3,
-    semester: 6
-};
-
-/** @type {CommentUserData} */
-const DUMMY_USER_2 = {
-    _id: "u2",
-    name: "Priya Singh",
-    profilePicture: "https://i.pravatar.cc/150?img=5",
-    branch: "ECE",
-    year: 2,
-    semester: 4
-};
-
-
-/** @type {FileData[]} */
+// --- DUMMY DATA (Matching your Mongoose Schema) ---
 const DUMMY_DATA = [
     {
-        file_id: "f123456",
-        original_File_Name: "CS-401_Operating_Systems_Module_1_Notes.pdf",
+        _id: "65f2a1b3c9e7890012a1b2c3",
+        original_File_Name: "Data_Structures_Unit1_Notes.pdf",
+        cloudinary_Public_Id: "notes/ds_unit1_xyz123",
+        secure_url: "https://res.cloudinary.com/demo/image/upload/v1680000000/sample.pdf",
         course: "B.Tech",
         Branch: "CSE",
-        subject: "Operating Systems",
-        year: 3,
-        semester: 6,
-        secure_url: "https://picsum.photos/id/1018/800/600",
-        resource_type: "notes",
-        uploadedAt: new Date("2024-05-10T10:00:00Z"),
-        upvotesCount: 45,
-        downvotesCount: 2,
-        comments: [
-            { _id: "c1", user: DUMMY_USER_1, text: "These notes are fantastic! Really saved me for the midterm.", createdAt: new Date("2024-05-11T08:00:00Z") },
-            { _id: "c2", user: DUMMY_USER_2, text: "Module 3 is a bit confusing, but this helps. Thanks!", createdAt: new Date("2024-05-11T09:30:00Z") },
-        ],
-    },
-    {
-        file_id: "f123457",
-        original_File_Name: "Applied_Maths_PYQ_2020-2023.zip",
-        course: "B.Tech",
-        Branch: "ECE",
-        subject: "Applied Mathematics",
-        year: 1,
-        semester: 2,
-        secure_url: "https://picsum.photos/id/1020/800/600",
-        resource_type: "PYQ",
-        uploadedAt: new Date("2023-11-20T10:00:00Z"),
-        upvotesCount: 120,
-        downvotesCount: 5,
-        comments: [
-            { _id: "c3", user: DUMMY_USER_2, text: "The 2022 paper is missing, otherwise this is a great collection.", createdAt: new Date("2023-11-21T14:00:00Z") },
-        ],
-    },
-    {
-        file_id: "f123458",
-        original_File_Name: "BBA_Financial_Accounting_Syllabus.docx",
-        course: "BBA",
-        Branch: "Finance",
-        subject: "Financial Accounting",
+        subject: "Data Structures",
         year: 2,
         semester: 3,
-        secure_url: "https://picsum.photos/id/1021/800/600",
-        resource_type: "syllabus",
-        uploadedAt: new Date("2024-01-15T10:00:00Z"),
-        upvotesCount: 5,
-        downvotesCount: 0,
-        comments: [], // <-- Empty comments array
+        resource_type: "notes",
+        uploadedByUser: "65f111111111111111111111",
+        uploadedAt: "2024-02-15T10:30:00.000Z",
+        upvotes: ["u1", "u2", "u3", "u4"], // Array of user IDs
+        downvotes: [],
+        comments: [
+            {
+                _id: "c1",
+                text: "The diagram on page 4 explains the linked list concept perfectly.",
+                createdAt: "2024-02-16T09:00:00.000Z",
+                user: {
+                    _id: "u2",
+                    name: "Rohan Das",
+                    profilePicture: "https://i.pravatar.cc/150?img=11",
+                    branch: "CSE",
+                    year: 2
+                }
+            }
+        ],
+        reports: []
     },
     {
-        file_id: "f123459",
-        original_File_Name: "Chemistry_DPP_Set_05.pdf",
-        course: "B.Sc",
-        Branch: "Chemistry",
+        _id: "65f2a1b3c9e7890012a1b2c4",
+        original_File_Name: "Engineering_Physics_2023_PYQ.pdf",
+        cloudinary_Public_Id: "pyq/phy_2023_abc456",
+        secure_url: "https://res.cloudinary.com/demo/image/upload/v1680000000/sample_doc.pdf",
+        course: "B.Tech",
+        Branch: "EEE",
+        subject: "Engineering Physics",
+        year: 1,
+        semester: 1,
+        resource_type: "PYQ",
+        uploadedByUser: "65f999999999999999999999",
+        uploadedAt: "2023-11-10T14:20:00.000Z",
+        upvotes: ["u1", "u5", "u6", "u7", "u8", "u9"],
+        downvotes: ["u10"],
+        comments: [],
+        reports: []
+    },
+    {
+        _id: "65f2a1b3c9e7890012a1b2c5",
+        original_File_Name: "Microprocessors_Lab_Manual_Final.docx",
+        cloudinary_Public_Id: "other/mp_lab_manual_789",
+        secure_url: "#", // No preview
+        course: "B.Tech",
+        Branch: "ECE",
+        subject: "Microprocessors",
+        year: 3,
+        semester: 5,
+        resource_type: "other",
+        uploadedByUser: "65f888888888888888888888",
+        uploadedAt: "2024-01-05T16:45:00.000Z",
+        upvotes: ["u1"],
+        downvotes: [],
+        comments: [
+            {
+                _id: "c2",
+                text: "Is this the updated 2024 syllabus version?",
+                createdAt: "2024-01-06T10:00:00.000Z",
+                user: {
+                    _id: "u5",
+                    name: "Priya K",
+                    profilePicture: "https://i.pravatar.cc/150?img=5",
+                    branch: "ECE",
+                    year: 3
+                }
+            },
+            {
+                _id: "c3",
+                text: "Yes, professor confirmed it yesterday.",
+                createdAt: "2024-01-06T12:30:00.000Z",
+                user: {
+                    _id: "u8",
+                    name: "Amit Singh",
+                    profilePicture: "https://i.pravatar.cc/150?img=3",
+                    branch: "ECE",
+                    year: 3
+                }
+            }
+        ],
+        reports: []
+    },
+    {
+        _id: "65f2a1b3c9e7890012a1b2c6",
+        original_File_Name: "Chemistry_DPP_Solutions_Set4.pdf",
+        downloads: 5,
+        cloudinary_Public_Id: "dpp/chem_set4_sol",
+        secure_url: "https://res.cloudinary.com/demo/image/upload/v1680000000/chem.pdf",
+        course: "B.Tech",
+        Branch: "CSE-AI",
         subject: "Organic Chemistry",
         year: 1,
-        semester: 1,
-        secure_url: "https://picsum.photos/id/1031/800/600",
+        semester: 2,
         resource_type: "DPP",
-        uploadedAt: new Date("2024-04-01T10:00:00Z"),
-        upvotesCount: 88,
-        downvotesCount: 10,
+        uploadedByUser: "65f777777777777777777777",
+        uploadedAt: "2024-03-01T08:15:00.000Z",
+        upvotes: Array(15).fill("id"),
+        downvotes: Array(2).fill("id"),
         comments: [],
-    },
-    {
-        file_id: "f123460",
-        original_File_Name: "Digital_Logic_Design_Prev_Year_Paper_2022.pdf",
-        course: "B.Tech",
-        Branch: "CSE",
-        subject: "Digital Logic",
-        year: 2,
-        semester: 4,
-        secure_url: "#", // No preview URL
-        resource_type: "prev-year-paper",
-        uploadedAt: new Date("2023-09-28T10:00:00Z"),
-        upvotesCount: 201,
-        downvotesCount: 15,
-        comments: [
-            { _id: "c4", user: DUMMY_USER_1, text: "This paper was tough! Good find.", createdAt: new Date("2023-09-29T11:00:00Z") },
-            { _id: "c5", user: DUMMY_USER_1, text: "Anyone have the solutions for this?", createdAt: new Date("2023-09-29T11:05:00Z") },
-            { _id: "c6", user: DUMMY_USER_2, text: "I have some, will upload them separately.", createdAt: new Date("2023-10-01T16:20:00Z") },
-        ],
-    },
-    {
-        file_id: "f123461",
-        original_File_Name: "Advanced_Algorithms_Quick_Ref_Guide.txt",
-        course: "M.Tech",
-        Branch: "IT",
-        subject: "Algorithms",
-        year: 1,
-        semester: 1,
-        secure_url: "https://picsum.photos/id/1039/800/600",
-        resource_type: "other",
-        uploadedAt: new Date("2024-05-01T10:00:00Z"),
-        upvotesCount: 15,
-        downvotesCount: 1,
-        comments: [
-            { _id: "c7", user: DUMMY_USER_1, text: "Quick and to the point. Perfect.", createdAt: new Date("2024-05-02T11:00:00Z") },
-        ],
-    },
+        reports: []
+    }
 ];
 
-
+// --- UTILITY HOOKS ---
 function useUniqueValues(data, key) {
     return React.useMemo(() => {
+        if (!data) return [];
         return Array.from(new Set(data.map(item => item[key]).filter(Boolean))).sort();
     }, [data, key]);
 }
 
-/**
- * Document Preview Component (uses Dialog)
- * This is the *large* preview when you click the preview button.
- */
-const DocumentPreviewDialog = ({ file_name, secure_url }) => {
-    const isPreviewable = secure_url && secure_url !== '#';
-
-    return (
-        isPreviewable ? (
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="w-full md:w-auto">
-                        <BookOpen className="mr-2 h-4 w-4" />
-                        Preview
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[1000px] h-[90vh] flex flex-col">
-                    <DialogHeader className="shrink-0">
-                        <DialogTitle>Preview: {file_name}</DialogTitle>
-                    </DialogHeader>
-                    <div className="flex-1 grow w-full h-auto mt-2 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                        {/* <img
-                            src={secure_url}
-                            alt={`Preview of ${file_name}`}
-                            className="max-h-full max-w-full object-contain shadow-xl border border-gray-300 rounded-lg"
-                        /> */}
-                        {/* FOR REAL PDFs, USE THIS INSTEAD OF <img>: */}
-                        <iframe
-                            src={secure_url}
-                            title={`Preview of ${file_name}`}
-                            className="w-full h-full border-0"
-                        />
-
-                    </div>
-                </DialogContent>
-            </Dialog>
-        ) : (
-            <Button variant="outline" size="sm" title="No Preview Available" disabled={true} className="w-full md:w-auto">
-                <BookOpen className="mr-2 h-4 w-4" />
-                No Preview
-            </Button>
-        )
-    );
-};
-
-// --- NEW COMMENT COMPONENTS ---
-
-const Comment = ({ comment }) => {
-    const { user, text, createdAt } = comment;
-
-    // Helper to format user metadata
-    const userMeta = [
-        user.branch,
-        user.year ? `Year ${user.year}` : null,
-        user.semester ? `Sem ${user.semester}` : null
-    ].filter(Boolean).join(' • '); // e.g., "CSE • Year 3 • Sem 6"
-
-    return (
-        <div className="flex items-start space-x-3 py-3">
-            <Avatar className="h-8 w-8">
-                <AvatarImage src={user.profilePicture} alt={user.name} />
-                <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-                <div className="flex flex-wrap items-baseline space-x-2">
-                    <span className="font-semibold text-sm">{user.name}</span>
-                    <span className="text-xs text-muted-foreground">{userMeta}</span>
-                </div>
-                <p className="text-sm text-foreground mt-1">{text}</p>
-                <span className="text-xs text-muted-foreground mt-1" suppressHydrationWarning>
-                    {new Date(createdAt).toLocaleDateString()}
-                </span>
-            </div>
-        </div>
-    );
-};
-
-const CommentSection = ({ comments }) => {
-    // State for the new comment input
-    const [newComment, setNewComment] = React.useState("");
-
-    const handleCommentSubmit = (e) => {
-        e.preventDefault();
-        if (newComment.trim() === "") return;
-
-        // --- API Call ---
-        // In a real app, you'd call your API here to submit the comment
-        console.log("Submitting comment:", newComment);
-        // await api.post('/api/comments', { fileId: '...', text: newComment });
-
-        // Optimistically update or refetch. For now, just clear the input.
-        setNewComment("");
-    };
-
-    return (
-        <div className="bg-muted/50 dark:bg-black/50 px-4 md:px-6 py-4">
-            {/* Comment Input */}
-            <form onSubmit={handleCommentSubmit} className="flex items-center space-x-2 pb-3">
-                <Avatar className="h-8 w-8">
-                    {/* This should be the *current* logged-in user's avatar */}
-                    <AvatarImage src="https://i.pravatar.cc/150?img=1" alt="Your profile" />
-                    <AvatarFallback>U</AvatarFallback>
-                </Avatar>
-                <Input
-                    placeholder="Write a comment..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    className="flex-1 bg-background"
-                />
-                <Button type="submit" size="icon" disabled={!newComment.trim()}>
-                    <Send className="h-4 w-4" />
-                </Button>
-            </form>
-
-            {/* Comment List */}
-            <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-                {comments.length > 0 ? (
-                    comments.map((comment) => (
-                        <Comment key={comment._id} comment={comment} />
-                    ))
-                ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                        Be the first to comment.
-                    </p>
-                )}
-            </div>
-        </div>
-    );
-};
-
-// Upvote/Downvote CLick Handler
-const handleUp_DownVoteClick = () => {
-
-}
-
-
-const FileCard = ({ file }) => {
-    const [isCommentsOpen, setIsCommentsOpen] = React.useState(false);
-
-    const isPreviewable = file.secure_url && file.secure_url !== '#';
-    const formattedType = file.resource_type
-        ? file.resource_type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-        : 'N/A';
-    const formattedDate = new Date(file.uploadedAt).toLocaleDateString();
-
-    return (
-        // The Card component is now the root
-        <Card className="w-full shadow-md hover:shadow-lg transition-shadow overflow-hidden">
-            <div className="flex flex-col md:flex-row">
-
-                {/* 1. Preview Pane (iframe) */}
-                <div className="w-full md:w-1/4 lg:w-1/5 xl:w-1/6 bg-gray-50 dark:bg-gray-800 p-2 flex items-center justify-center relative aspect-video md:aspect-auto">
-                    {isPreviewable ? (
-                        <iframe
-                            src={file.secure_url}
-                            title={`Preview of ${file.original_File_Name}`}
-                            className="w-full h-full border-0 rounded-md"
-                            loading="lazy"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground bg-gray-100 dark:bg-gray-900 rounded-md p-4">
-                            <FileText className="h-12 w-12" />
-                            <span className="mt-2 text-xs text-center">No Preview Available</span>
-                        </div>
-                    )}
-                </div>
-
-                {/* 2. Main Info Pane */}
-                <div className="flex-1 p-4 md:p-6 flex flex-col justify-between">
-                    <div>
-                        {/* Top Section: Title & Type */}
-                        <div className="flex justify-between items-start mb-2">
-                            <h3 className="font-bold text-lg md:text-xl text-primary leading-tight" title={file.original_File_Name}>
-                                {file.original_File_Name}
-                            </h3>
-                            <Badge variant="default" className="bg-green-600 text-white hover:bg-green-700 ml-3 flex-shrink-0">
-                                {formattedType}
-                            </Badge>
-                        </div>
-
-                        {/* Middle Section: Course, Branch, Sem, etc. */}
-                        <div className="flex flex-wrap items-center gap-2 mb-4">
-                            <Badge variant="secondary" className="font-mono">{file.course}</Badge>
-                            <Badge variant="outline" className="capitalize">{file.Branch || 'N/A'}</Badge>
-                            {file.year && (
-                                <span className="text-sm text-muted-foreground">Year {file.year}</span>
-                            )}
-                            {file.semester && (
-                                <span className="text-sm text-muted-foreground">Sem {file.semester}</span>
-                            )}
-                        </div>
-
-                        <p className="text-sm text-muted-foreground mb-4">
-                            Subject: <span className="font-semibold text-foreground">{file.subject}</span>
-                        </p>
-                    </div>
-
-                    {/* Bottom Section: Stats & Actions */}
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                        {/* Stats */}
-                        <TooltipProvider delayDuration={100}>
-                            <div className="flex items-center space-x-4 text-muted-foreground">
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="flex items-center space-x-1 cursor-default">
-                                            <ArrowUp onClick={() => handleUp_DownVoteClick("upvote")} className="h-4 w-4 transition-all hover:h-5 hover:w-5 text-green-500" />
-                                            <span className="text-sm font-medium text-foreground">{file.upvotesCount}</span>
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Upvotes</TooltipContent>
-                                </Tooltip>
-
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="flex items-center space-x-1 cursor-default">
-                                            <ArrowDown onClick={() => handleUp_DownVoteClick("downvote")} className="h-4 w-4 transition-all hover:h-5 hover:w-5 text-red-500" />
-                                            <span className="text-sm font-medium text-foreground">{file.downvotesCount}</span>
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Downvotes</TooltipContent>
-                                </Tooltip>
-
-                                {/* --- MODIFIED COMMENT BUTTON --- */}
-                                
-                                {/* <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        // This is now a button to toggle the state
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="flex items-center space-x-1 h-auto px-1 py-1"
-                                            onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-                                        >
-                                            <MessageSquare className={`h-4 w-4 ${isCommentsOpen ? 'text-primary' : 'text-blue-500'}`} />
-                                            <span className="text-sm font-medium text-foreground">
-                                                {file.comments.length}
-                                            </span>
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>{isCommentsOpen ? 'Hide comments' : 'Show comments'}</TooltipContent>
-                                </Tooltip> */}
-                            </div>
-                        </TooltipProvider>
-
-                        {/* Actions (Preview Button & Date) */}
-                        <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                            <span className="text-xs text-muted-foreground order-last md:order-first" suppressHydrationWarning={true}>
-                                Uploaded: {formattedDate}
-                            </span>
-                            <div className="flex flex-col gap-1.5">
-                                <DocumentPreviewDialog
-                                    file_name={file.original_File_Name}
-                                    secure_url={file.secure_url}
-                                />
-                                <div>
-                                    <Button variant="outline" size="sm" className="w-full md:w-auto">
-                                        <Download className="mr-2 h-4 w-4" />
-                                        Download
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* This section will appear/disappear based on the state */}
-            {/* {isCommentsOpen && (
-                <>
-                    <Separator className="dark:bg-gray-700" />
-                    <CommentSection comments={file.comments} />
-                </>
-            )} */}
-        </Card>
-    )
-}
-
-
-// --- 3. COLUMN DEFINITIONS (FOR STATE MANAGEMENT) ---
-// We still need this to tell useReactTable what data exists
-// and what accessor keys to use for filtering and sorting.
-/** @type {import('@tanstack/react-table').ColumnDef<FileData>[]} */
+// --- TABLE COLUMNS CONFIGURATION ---
 const columns = [
+    { accessorKey: "_id" },
     { accessorKey: "original_File_Name" },
-    {
-        accessorKey: "resource_type",
-        filterFn: "arrIncludes", // Multi-select filter
-    },
-    {
-        accessorKey: "course",
-        filterFn: "arrIncludes", // Multi-select filter
-    },
-    {
-        accessorKey: "Branch",
-        filterFn: "arrIncludes", // Multi-select filter
-    },
+    { accessorKey: "resource_type", filterFn: "arrIncludes" },
+    { accessorKey: "course", filterFn: "arrIncludes" },
+    { accessorKey: "Branch", filterFn: "arrIncludes" },
     {
         accessorKey: "year",
-        // Single-select filter
-        filterFn: (row, id, value) => (value ? row.getValue(id) === parseInt(value) : true),
+        filterFn: (row, id, value) => (value ? row.getValue(id) === parseInt(value) : true)
     },
     {
         accessorKey: "semester",
-        // Single-select filter
-        filterFn: (row, id, value) => (value ? row.getValue(id) === parseInt(value) : true),
+        filterFn: (row, id, value) => (value ? row.getValue(id) === parseInt(value) : true)
     },
     { accessorKey: "uploadedAt" },
-    { accessorKey: "upvotesCount" },
-    { accessorKey: "downvotesCount" },
+    // Custom Accessors for Array Lengths
     {
-        accessorKey: "comments",
-        // Add a custom sort fn for comments array length
-        sortingFn: (rowA, rowB, id) => {
-            return rowA.original.comments.length - rowB.original.comments.length;
-        },
-        // We add an accessorFn so sorting/filtering knows to use the length
-        accessorFn: (row) => row.comments.length,
+        id: "upvotes",
+        accessorFn: (row) => row.upvotes ? row.upvotes.length : 0,
     },
-]
+    {
+        id: "comments",
+        accessorFn: (row) => row.comments ? row.comments.length : 0,
+        sortingFn: (rowA, rowB) => {
+            const lenA = rowA.original.comments?.length || 0;
+            const lenB = rowB.original.comments?.length || 0;
+            return lenA - lenB;
+        }
+    }
+];
 
-// --- 4. MAIN COMPONENT (Default Export for the Page) ---
-/**
- * @param {object} props
- * @param {FileData[]} [props.Data] - The array of file objects passed from the server.
- */
-export default function UserUploadsPage() {
-    const [data, setData] = React.useState(null)
+
+// --- MAIN PAGE COMPONENT ---
+function ResourceLibraryContent() {
+    // 1. DATA STATE
+    // Initialize with DUMMY_DATA for now. 
+    // In production, start with [] and fetch in useEffect.
+    const [data, setData] = React.useState([]);
+    const [user, setUser] = React.useState(null);
+    const [isLoading, setIsLoading] = React.useState(true);
+
+    const router = useRouter()
 
     React.useEffect(() => {
-      findFiles({}).then(files => { setData(files); console.log("Fetched files for resources page:", files); })
-    }, [])
-    
-    if (!data) {
-        return (<p className="text-center h-[60vh] pt-14">Loading...</p>)
-    }
+        findFiles({}).then(files => {
+            if (files) setData(files);
+            setIsLoading(false);
+        });
+        decodeJWT().then((payload) => {
+            setUser(payload)
+        });
+    }, []);
 
-    const DEFAULT_PAGE_SIZE = 10;
+    // 2. TABLE STATE
+    const [sorting, setSorting] = React.useState([{ id: 'uploadedAt', desc: true }]);
+    const [columnFilters, setColumnFilters] = React.useState([]);
+    const [pageSize, setPageSize] = React.useState(5); // Show 5 items per page
 
-    // State initialization
-    const [sorting, setSorting] = React.useState([{ id: 'uploadedAt', desc: true }])
-    const [columnFilters, setColumnFilters] = React.useState([])
-    const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
-
-    // Custom filter function for multi-select
     const filterFns = {
         arrIncludes: (row, id, value) => value.includes(row.getValue(id)),
-    }
+    };
 
     const table = useReactTable({
-        data: data,
+        data,
         columns,
         filterFns,
+        getCoreRowModel: getCoreRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
         state: {
             sorting,
             columnFilters,
             pagination: {
-                pageIndex: 0,
+                pageIndex: 0, // Controlled by internal state unless overridden
                 pageSize,
             },
         },
-        manualPagination: false, // We're using client-side pagination
-    })
+        // We let the table manage pagination state internally for simplicity,
+        // but we could lift it out if needed.
+    });
 
-    // --- Filter Utilities ---
+    // 3. FILTER UTILS
     const uniqueCourses = useUniqueValues(data, 'course');
     const uniqueBranches = useUniqueValues(data, 'Branch');
     const uniqueYears = useUniqueValues(data, 'year');
     const uniqueSemesters = useUniqueValues(data, 'semester');
-    const uniqueResourceTypes = RESOURCE_TYPES;
 
-    // Get Filter Values for badge count
-    const resourceTypeFilterValue = table.getColumn("resource_type")?.getFilterValue() || [];
-    const courseFilterValue = table.getColumn("course")?.getFilterValue() || [];
-    const branchFilterValue = table.getColumn("Branch")?.getFilterValue() || [];
+    // Helper to get current filter arrays
+    const getFilter = (key) => table.getColumn(key)?.getFilterValue() || [];
 
-    // Function to set single-value filters (Year, Semester)
-    const setSingleFilter = (key, value) => {
-        const filterValue = value === 'all' ? '' : value;
-        table.getColumn(key)?.setFilterValue(filterValue);
-    }
+    // Helper to set filters
+    const handleFilterChange = (key, value, isMulti) => {
+        if (isMulti) {
+            table.getColumn(key)?.setFilterValue(value);
+        } else {
+            const val = value === 'all' ? '' : value;
+            table.getColumn(key)?.setFilterValue(val);
+        }
+    };
 
-    const clearAllFilters = () => {
+    const clearFilters = () => {
         setColumnFilters([]);
-        table.getColumn("original_File_Name")?.setFilterValue("");
+        table.resetGlobalFilter();
+    };
+
+    const searchParams = useSearchParams();
+
+    React.useEffect(() => {
+        const searchFileId = searchParams.get('fileId');
+        async function async() {
+            if (searchFileId) {
+                const file = await findFileById(searchFileId);
+                !file && router.push('/resources')
+
+                setData([file]);
+                table.getColumn("original_File_Name")?.setFilterValue((file?.original_File_Name) ? file?.original_File_Name : "")
+            } else {
+                table.getColumn("original_File_Name")?.setFilterValue("")
+                table.getColumn("_id")?.setFilterValue("");
+            }
+        }
+        async()
+    }, [searchParams, router, table])
+
+
+    // 4. RENDER
+    if (isLoading) return <ResourceLibrarySkeleton />
+
+    if (data?.length === 0 && isLoading) {
+        return <div className="p-10 h-[90vh] flex flex-col items-center justify-center text-center space-y-4">
+            <h2 className="text-4xl font-bold">No Resources Found</h2>
+            <p className="text-muted-foreground">It seems there are no resources available at the moment. Please check back later or try adjusting your filters.</p>
+        </div>
     }
-
-    // --- Sort By Controls ---
-    const currentSortId = sorting[0]?.id || 'uploadedAt';
-    const currentSortDesc = sorting[0]?.desc || true;
-
-    const handleSortChange = (newId) => {
-        setSorting([{ id: newId, desc: currentSortDesc }]);
-    };
-
-    const toggleSortDirection = () => {
-        setSorting([{ id: currentSortId, desc: !currentSortDesc }]);
-    };
-
 
     return (
-        <div className="container mx-auto md:mt-5 mb-14 p-4 md:p-0">
+        <div className="container mx-auto p-4 md:p-6 max-w-7xl min-h-screen">
 
-            {/* ---------------------------------------------------- */}
-            {/* Filter, Search, and Sort Bar */}
-            {/* ---------------------------------------------------- */}
-            <div className="flex flex-wrap items-center py-4 gap-3">
-                {/* Global Search */}
-                <div className="relative flex items-center max-w-sm">
-                    <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
+            <div className="mb-8">
+                <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2">Resource Library</h1>
+                <p className="text-muted-foreground">Browse notes, papers, and study materials uploaded by peers.</p>
+            </div>
+
+            {/* --- CONTROLS BAR --- */}
+            <div className="flex flex-col lg:flex-row gap-4 mb-6 bg-card p-4 rounded-lg border shadow-sm">
+
+                {/* Search */}
+                <div className="relative w-full lg:w-96">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search file name..."
+                        placeholder="Search by file name..."
                         value={(table.getColumn("original_File_Name")?.getFilterValue() ?? "")}
-                        onChange={(event) =>
-                            table.getColumn("original_File_Name")?.setFilterValue(event.target.value)
-                        }
-                        className="pl-9 w-[250px]"
+                        onChange={(e) => table.getColumn("original_File_Name")?.setFilterValue(e.target.value)}
+                        className="pl-9"
                     />
                 </div>
 
-                {/* --- FILTERS GROUP --- */}
-                <div className="flex flex-wrap gap-3 ml-auto">
+                {/* Filters Group */}
+                <div className="flex flex-wrap flex-1 gap-2 items-center">
 
-                    {/* 1. Resource Type Multi-Select Filter */}
+                    {/* TYPE Filter */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" className="border-dashed">
                                 <Filter className="mr-2 h-4 w-4" />
                                 Type
-                                {resourceTypeFilterValue.length > 0 &&
-                                    <Badge variant="default" className="ml-2 h-5 w-5 justify-center p-0">{resourceTypeFilterValue.length}</Badge>
-                                }
+                                {getFilter("resource_type").length > 0 && (
+                                    <Badge variant="secondary" className="ml-2 px-1 rounded-sm h-5">{getFilter("resource_type").length}</Badge>
+                                )}
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {uniqueResourceTypes.map((type) => (
+                        <DropdownMenuContent align="start">
+                            {RESOURCE_TYPES.map((type) => (
                                 <DropdownMenuCheckboxItem
                                     key={type}
-                                    checked={resourceTypeFilterValue.includes(type)}
+                                    checked={getFilter("resource_type").includes(type)}
                                     onCheckedChange={(checked) => {
-                                        const newFilter = checked
-                                            ? [...resourceTypeFilterValue, type]
-                                            : resourceTypeFilterValue.filter((t) => t !== type);
-                                        table.getColumn("resource_type")?.setFilterValue(newFilter);
+                                        const current = getFilter("resource_type");
+                                        const next = checked ? [...current, type] : current.filter((t) => t !== type);
+                                        handleFilterChange("resource_type", next, true);
                                     }}
                                 >
-                                    {type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                                    {type.toUpperCase()}
                                 </DropdownMenuCheckboxItem>
                             ))}
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    {/* 2. Course Multi-Select Filter */}
+                    {/* BRANCH Filter */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
-                                <Filter className="mr-2 h-4 w-4" />
-                                Course
-                                {courseFilterValue.length > 0 &&
-                                    <Badge variant="default" className="ml-2 h-5 w-5 justify-center p-0">{courseFilterValue.length}</Badge>
-                                }
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {uniqueCourses.map((course) => (
-                                <DropdownMenuCheckboxItem
-                                    key={course}
-                                    checked={courseFilterValue.includes(course)}
-                                    onCheckedChange={(checked) => {
-                                        const newFilter = checked
-                                            ? [...courseFilterValue, course]
-                                            : courseFilterValue.filter((c) => c !== course);
-                                        table.getColumn("course")?.setFilterValue(newFilter);
-                                    }}
-                                >
-                                    {course}
-                                </DropdownMenuCheckboxItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    {/* 3. Branch Multi-Select Filter */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
-                                <Filter className="mr-2 h-4 w-4" />
+                            <Button variant="outline" size="sm" className="border-dashed">
                                 Branch
-                                {branchFilterValue.length > 0 &&
-                                    <Badge variant="default" className="ml-2 h-5 w-5 justify-center p-0">{branchFilterValue.length}</Badge>
-                                }
+                                {getFilter("Branch").length > 0 && (
+                                    <Badge variant="secondary" className="ml-2 px-1 rounded-sm h-5">{getFilter("Branch").length}</Badge>
+                                )}
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="start">
                             {uniqueBranches.map((branch) => (
                                 <DropdownMenuCheckboxItem
                                     key={branch}
-                                    checked={branchFilterValue.includes(branch)}
+                                    checked={getFilter("Branch").includes(branch)}
                                     onCheckedChange={(checked) => {
-                                        const newFilter = checked
-                                            ? [...branchFilterValue, branch]
-                                            : branchFilterValue.filter((b) => b !== branch);
-                                        table.getColumn("Branch")?.setFilterValue(newFilter);
+                                        const current = getFilter("Branch");
+                                        const next = checked ? [...current, branch] : current.filter((b) => b !== branch);
+                                        handleFilterChange("Branch", next, true);
                                     }}
                                 >
                                     {branch}
@@ -692,132 +379,76 @@ export default function UserUploadsPage() {
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    {/* 4. Year Select Filter */}
+                    {/* YEAR Select */}
                     <Select
-                        onValueChange={(value) => setSingleFilter('year', value)}
-                        value={table.getColumn('year')?.getFilterValue() || "all"}
+                        value={table.getColumn("year")?.getFilterValue() || "all"}
+                        onValueChange={(val) => handleFilterChange("year", val, false)}
                     >
-                        <SelectTrigger className="w-[100px] text-sm" aria-label="Filter by Year">
+                        <SelectTrigger className="w-[110px] h-9 text-sm">
                             <SelectValue placeholder="Year" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Years</SelectItem>
-                            {uniqueYears.map(year => (
-                                <SelectItem key={year} value={String(year)}>{year}</SelectItem>
-                            ))}
+                            {uniqueYears.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
                         </SelectContent>
                     </Select>
 
-                    {/* 5. Semester Select Filter */}
-                    <Select
-                        onValueChange={(value) => setSingleFilter('semester', value)}
-                        value={table.getColumn('semester')?.getFilterValue() || "all"}
-                    >
-                        <SelectTrigger className="w-[120px] text-sm" aria-label="Filter by Semester">
-                            <SelectValue placeholder="Semester" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Semesters</SelectItem>
-                            {uniqueSemesters.map(semester => (
-                                <SelectItem key={semester} value={String(semester)}>Sem {semester}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    {/* Clear Filters Button */}
-                    {(columnFilters.length > 0 || table.getColumn("original_File_Name")?.getFilterValue()) && (
-                        <Button variant="ghost" size="sm" onClick={clearAllFilters} title="Clear all active filters">
-                            Clear All
+                    {/* Clear Button */}
+                    {columnFilters.length > 0 && (
+                        <Button variant="outline" size="sm" onClick={clearFilters} className="ml-auto lg:ml-0">
+                            Reset
                         </Button>
                     )}
+                </div>
 
-                    {/* Sort By Control */}
-                    <div className="flex gap-1">
-                        <Select onValueChange={handleSortChange} value={currentSortId}>
-                            <SelectTrigger className="w-[150px] text-sm" aria-label="Sort by">
-                                <SelectValue placeholder="Sort by" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="uploadedAt">Upload Date</SelectItem>
-                                <SelectItem value="upvotesCount">Upvotes</SelectItem>
-                                <SelectItem value="comments">Comments</SelectItem>
-                                <SelectItem value="original_File_Name">File Name</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Button variant="outline" size="icon" onClick={toggleSortDirection} title={currentSortDesc ? "Sort Ascending" : "Sort Descending"}>
-                            {currentSortDesc ? <ArrowDown className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />}
-                        </Button>
-                    </div>
-
+                {/* Sort Control */}
+                <div className="">
+                    <Select
+                        value={sorting[0]?.id}
+                        onValueChange={(val) => setSorting([{ id: val, desc: true }])}
+                    >
+                        <SelectTrigger className="w-[160px] h-9 text-sm">
+                            <span className="text-muted-foreground mr-1">Sort by:</span>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="uploadedAt">Newest</SelectItem>
+                            <SelectItem value="upvotes">Most Upvoted</SelectItem>
+                            <SelectItem value="comments">Most Discussed</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
-            {/* ---------------------------------------------------- */}
-            {/* Card List */}
-            {/* ---------------------------------------------------- */}
-            <div className="space-y-4 py-4">
-                {data.length === 0 ? (
-                    <Card>
-                        <CardContent className="h-24 flex items-center justify-center text-muted-foreground">
-                            No files loaded. Check the server connection or add data.
-                        </CardContent>
-                    </Card>
-                ) : table.getRowModel().rows?.length ? (
+            {/* --- LIST AREA --- */}
+            <div className="space-y-4">
+                {table.getRowModel().rows.length > 0 ? (
                     table.getRowModel().rows.map((row) => (
-                        <FileCard key={row.original.file_id} file={row.original} />
+                        <FileCard key={row.original._id} file={row.original} user={user} />
                     ))
                 ) : (
-                    <Card>
-                        <CardContent className="h-24 flex items-center justify-center text-muted-foreground">
-                            No files found matching your criteria.
-                        </CardContent>
-                    </Card>
+                    <div className="text-center py-20 bg-muted/20 rounded-lg border border-dashed">
+                        <p className="text-muted-foreground">No files found matching your criteria.</p>
+                        <Button variant="link" onClick={clearFilters}>Clear all filters</Button>
+                    </div>
                 )}
             </div>
 
-            {/* ---------------------------------------------------- */}
-            {/* Footer and Pagination */}
-            {/* ---------------------------------------------------- */}
-            <div className="flex items-center justify-end space-x-6 py-4">
-                <div className="flex-1 text-sm text-muted-foreground">
-                    Viewing <span className="font-semibold">{table.getRowModel().rows.length}</span> of <span className="font-semibold">{data.length}</span> total files.
-                </div>
+            {searchParams.get('fileId') && <Button asChild><Link href={'/resources'}>Go Back to Resources</Link></Button>}
 
-                {/* Page Size Control (Show items per page) */}
-                <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium">Rows per page:</p>
-                    <Select
-                        value={`${pageSize}`}
-                        onValueChange={(value) => {
-                            setPageSize(Number(value));
-                            table.setPageSize(Number(value));
-                        }}
-                    >
-                        <SelectTrigger className="h-8 w-[70px]">
-                            <SelectValue placeholder={pageSize} />
-                        </SelectTrigger>
-                        <SelectContent side="top">
-                            {[5, 10, 20, 30, 40, 50].map((size) => (
-                                <SelectItem key={size} value={`${size}`}>
-                                    {size}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Page Index Display */}
-                <div className="flex items-center space-x-2">
-                    <div className="text-sm font-medium text-muted-foreground">
-                        Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+            {/* --- PAGINATION --- */}
+            {table.getRowModel().rows.length > 0 && (
+                <div className="flex items-center justify-end space-x-2 py-8">
+                    <div className="flex-1 text-sm text-muted-foreground">
+                        Showing {table.getRowModel().rows.length} of {table.getFilteredRowModel().rows.length} results
                     </div>
-                    {/* Pagination Buttons */}
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => table.previousPage()}
                         disabled={!table.getCanPreviousPage()}
                     >
+                        <ChevronLeft className="h-4 w-4 mr-1" />
                         Previous
                     </Button>
                     <Button
@@ -827,9 +458,18 @@ export default function UserUploadsPage() {
                         disabled={!table.getCanNextPage()}
                     >
                         Next
+                        <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                 </div>
-            </div>
+            )}
         </div>
-    )
+    );
+}
+
+export default function UserUploadsPage() {
+    return (
+        <Suspense fallback={<ResourceLibrarySkeleton />}>
+            <ResourceLibraryContent />
+        </Suspense>
+    );
 }

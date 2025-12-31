@@ -72,7 +72,7 @@ export default function Home() {
                 The strength of a university notes platform lies in its community. By sharing your well-organized notes, past papers, or insightful study guides, you empower countless fellow students to succeed in their academic journeys.
               </p>
               <p className="text-lg text-gray-900 dark:text-gray-100">
-                Every contribution helps build a richer, more comprehensive repository for everyone. It's a simple, impactful way to give back and foster a culture of collective success.
+                Every contribution helps build a richer, more comprehensive repository for everyone. It&apos;s a simple, impactful way to give back and foster a culture of collective success.
               </p>
 
               {/* Call to Action Button */}
@@ -98,7 +98,7 @@ export default function Home() {
 
       <div>
         <h2 className="text-4xl sm:text-5xl text-center mt-10 font-extrabold tracking-tight mb-6 leading-tight">
-          <span className="block"><span className="text-6xl sm:text-7xl">"</span>Our Testimonials<span className="text-6xl sm:text-7xl">"</span></span>
+          <span className="block"><span className="text-6xl sm:text-7xl">&quot;</span>Our Testimonials<span className="text-6xl sm:text-7xl">&quot;</span></span>
         </h2>
         <Testimonials />
       </div>

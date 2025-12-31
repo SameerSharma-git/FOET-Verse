@@ -20,7 +20,7 @@ export function NavSecondary({
         <SidebarMenu>
           {items.map((item) => (
               <SidebarMenuItem onClick={() => {setSecondSelect(item.title); setFirstSelect("General")}} key={item.title}>
-                <SidebarMenuButton asChild size="sm">
+                <SidebarMenuButton className={'cursor-pointer'} asChild size="sm">
                   <div>
                     <item.icon />
                     <span>{item.title}</span>

@@ -16,6 +16,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { useTheme } from 'next-themes';
+import { updateUser } from '@/lib/actions/userActions';
 
 // --- DUMMY DATA ---
 const BRANCHES = ['CS', 'ME', 'EE', 'CE', 'EC'];
@@ -33,11 +34,33 @@ const RESOURCE_TYPE_OPTIONS = [
 ];
 
 const SUBJECTS_BY_BRANCH = {
-  CS: ['Data Structures', 'Algorithms', 'Operating Systems', 'Web Development'],
-  ME: ['Thermodynamics', 'Fluid Mechanics', 'Machine Design'],
-  EE: ['Circuit Theory', 'Power Systems', 'Control Systems'],
-  CE: ['Structural Analysis', 'Geotechnical Engineering'],
-  EC: ['Digital Electronics', 'Communication Systems'],
+  COMMON: ["Basic Electrical Eng.", "Basic Electronics Eng.", "Maths - 1", "Professional Communication", "Basic Mechanical Eng.", "Basic Civil Eng.", "Graphics", "Engineering Physics", "Chemistry"],
+  CS: [
+    'Data Structures', 'Design and Analysis of Algorithms', 'Operating Systems', 
+    'Computer Organization and Architecture', 'Discrete Mathematics', 
+    'Database Management Systems', 'Software Engineering', 'Theory of Computation', 
+    'Computer Networks', 'Artificial Intelligence', 'Compiler Design', 'Cloud Computing'
+  ],
+  ME: [
+    'Thermodynamics', 'Fluid Mechanics', 'Machine Design', 'Heat and Mass Transfer', 
+    'Manufacturing Processes', 'Kinematics of Machinery', 'Internal Combustion Engines', 
+    'Strength of Materials', 'CAD/CAM', 'Automobile Engineering', 'Industrial Engineering'
+  ],
+  EE: [
+    'Circuit Theory', 'Power Systems', 'Control Systems', 'Electrical Machines', 
+    'Power Electronics', 'Electromagnetic Fields', 'Signals and Systems', 
+    'Electrical Measurements', 'Microprocessors', 'Renewable Energy Sources'
+  ],
+  CE: [
+    'Structural Analysis', 'Geotechnical Engineering', 'Surveying', 
+    'Concrete Technology', 'Transportation Engineering', 'Hydrology & Water Resources', 
+    'Environmental Engineering', 'Building Materials', 'Estimation and Costing'
+  ],
+  ECE: [
+    'Digital Electronics', 'Communication Systems', 'Microcontrollers', 
+    'Analog Circuits', 'VLSI Design', 'Digital Signal Processing', 
+    'Antenna and Wave Propagation', 'Embedded Systems', 'Optical Fiber Communication'
+  ],
 };
 
 
@@ -120,7 +143,6 @@ export default function UploadNotesForm() {
 
     try {
       // Send combined FormData to the single file upload endpoint
-      console.log('Sending file and metadata to single endpoint: /api/upload-pdf');
 
       const response = await axios.post('/api/upload-pdf', combinedFormData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -130,7 +152,8 @@ export default function UploadNotesForm() {
         }
       })
 
-      console.log('Upload and Save successful:', response.data);
+      // updateUser({_id: })
+
       showToast(`Notes for ${formData.subject} saved successfully!`);
 
       // Reset form on success
