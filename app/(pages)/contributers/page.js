@@ -53,7 +53,7 @@ export default function ContributorsPage() {
   // Simulate Async Fetching from MongoDB
   useEffect(() => {
     findUsers({}).then(data => {
-      data && setUsers(data.filter(entry => entry.uploads.length !== 0));
+      data && setUsers(data);
       setLoading(false);
     });
     // setUsers(MOCK_USERS);
@@ -61,18 +61,18 @@ export default function ContributorsPage() {
 
   // Filter & Pagination Logic
   const filteredUsers = useMemo(() => {
-
+  
     return users.filter(user =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.branch.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [users, searchTerm]);
-
+  
   const totalPages = Math.ceil(filteredUsers?.length / itemsPerPage);
   const paginatedUsers = filteredUsers?.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
 
   return (
     <div className="min-h-screen px-6 md:p-12">
@@ -219,8 +219,8 @@ export default function ContributorsPage() {
                         key={i}
                         onClick={() => setCurrentPage(i + 1)}
                         className={`w-10 h-10 rounded-xl text-sm font-black transition-all ${currentPage === i + 1
-                          ? "bg-primary text-white dark:text-black shadow-lg shadow-primary/30"
-                          : "text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                            ? "bg-primary text-white dark:text-black shadow-lg shadow-primary/30"
+                            : "text-slate-400 hover:text-slate-900 dark:hover:text-white"
                           }`}
                       >
                         {i + 1}
