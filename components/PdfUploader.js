@@ -256,7 +256,7 @@ export default function UploadNotesForm() {
         {/* Submit Button */}
         <Button
           type="submit"
-          disabled={isSubmitting || files.length === 0 || !formData.branch || !formData.subject}
+          disabled={isSubmitting || files.length === 0 || !formData.branch || !formData.subject || !formData.fileName}
           className="w-full"
         >
           {isSubmitting
