@@ -232,13 +232,14 @@ function ResourceLibraryContent() {
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         state: {
-            sorting,
-            columnFilters,
-            pagination: {
-                pageIndex: 0, // Controlled by internal state unless overridden
-                pageSize,
-            },
-        },
+    sorting,
+    columnFilters,
+  },
+  initialState: {
+    pagination: {
+      pageSize: 5,
+    },
+  },
         // We let the table manage pagination state internally for simplicity,
         // but we could lift it out if needed.
     });
