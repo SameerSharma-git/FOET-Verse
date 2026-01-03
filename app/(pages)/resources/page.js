@@ -298,6 +298,10 @@ function ResourceLibraryContent() {
         </div>
     }
 
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    };
+    
     return (
         <div className="container mx-auto p-4 md:p-6 max-w-7xl min-h-screen">
 
@@ -444,7 +448,7 @@ function ResourceLibraryContent() {
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => table.previousPage()}
+                        onClick={() => {table.previousPage(); scrollToTop()}}
                         disabled={!table.getCanPreviousPage()}
                     >
                         <ChevronLeft className="h-4 w-4 mr-1" />
@@ -453,7 +457,7 @@ function ResourceLibraryContent() {
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => table.nextPage()}
+                        onClick={() => {table.nextPage(); scrollToTop()}}
                         disabled={!table.getCanNextPage()}
                     >
                         Next
