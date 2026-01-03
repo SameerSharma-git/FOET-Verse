@@ -85,7 +85,7 @@ export async function POST(request) {
 
         // Save File Metadata to Database
         addFile({
-            original_File_Name: orignial_file_name,
+            original_File_Name: fileName,
             secure_url: notesUrl,
             cloudinary_Public_Id: cloudinaryPublicId,
             course: "Btech",

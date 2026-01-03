@@ -62,6 +62,8 @@ const DocumentPreviewDialog = ({ file_name, secure_url }) => {
                             allowFullScreen
                         />
                     </div>
+
+                    {/* <PdfViewer url={secure_url} fileName={file_name} /> */}
                 </DialogContent>
             </Dialog>
         ) : (
