@@ -196,13 +196,11 @@ const columns = [
 // --- MAIN PAGE COMPONENT ---
 function ResourceLibraryContent() {
     // 1. DATA STATE
-    // Initialize with DUMMY_DATA for now. 
-    // In production, start with [] and fetch in useEffect.
     const [data, setData] = React.useState([]);
     const [user, setUser] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
 
-    const router = useRouter()
+    const router = useRouter();
 
     React.useEffect(() => {
         findFiles({}).then(files => {
@@ -217,7 +215,7 @@ function ResourceLibraryContent() {
     // 2. TABLE STATE
     const [sorting, setSorting] = React.useState([{ id: 'uploadedAt', desc: true }]);
     const [columnFilters, setColumnFilters] = React.useState([]);
-    const [pageSize, setPageSize] = React.useState(5); // Show 5 items per page
+    const pageSize = 5; // Show 5 items per page
 
     const filterFns = {
         arrIncludes: (row, id, value) => value.includes(row.getValue(id)),

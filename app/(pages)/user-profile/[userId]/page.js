@@ -6,7 +6,10 @@ import {
     ArrowUp, ArrowDown, MessageSquare, FileText, Send,
     Mail, GraduationCap, Building2, Calendar, BookOpenCheck,
     UserPlus, UserCheck, ChevronLeft, ChevronRight,
-    ChevronsLeft, ChevronsRight
+    ChevronsLeft, ChevronsRight,
+    UserX,
+    ArrowLeft,
+    Link
 } from "lucide-react"
 import {
     getCoreRowModel, useReactTable,
@@ -33,6 +36,8 @@ import { findMongoUserById, findUserById, updateUser } from "@/lib/actions/userA
 import { GeneralAlert } from "@/components/GeneralAlert"
 import { findFiles } from "@/lib/actions/fileActions"
 import FileCard from "@/components/UploadedFilesList"
+import UserIdSkeleton from "@/components/skeletons/userIdSkeleton"
+import Home from "@/app/page"
 
 // --- MOCK API HELPER (Replace with your actual Server Actions) ---
 // Simulates fetching file details for a specific page of IDs
@@ -91,189 +96,6 @@ const mockUserProfile = {
     "createdAt": "2023-09-01T10:00:00Z"
 }
 
-// --- SUB-COMPONENTS ---
-
-// const DocumentPreviewDialog = ({ file_name, secure_url }) => {
-//     const isPreviewable = secure_url && secure_url !== '#' && secure_url !== '';
-
-//     return (
-//         isPreviewable ? (
-//             <Dialog>
-//                 <DialogTrigger asChild>
-//                     <Button variant="outline" size="sm" className="w-full md:w-auto">
-//                         <BookOpen className="mr-2 h-4 w-4" />
-//                         Preview
-//                     </Button>
-//                 </DialogTrigger>
-//                 <DialogContent className="max-w-[95vw] sm:max-w-[1000px] h-[90vh] flex flex-col p-6">
-//                     <DialogHeader className="shrink-0 pb-2">
-//                         <DialogTitle className="truncate">Preview: {file_name}</DialogTitle>
-//                     </DialogHeader>
-//                     <div className="flex-1 w-full bg-muted rounded-md overflow-hidden border border-border">
-//                         <iframe
-//                             src={secure_url}
-//                             title={`Preview of ${file_name}`}
-//                             className="w-full h-full border-0"
-//                             loading="lazy"
-//                             allowFullScreen
-//                         />
-//                     </div>
-//                 </DialogContent>
-//             </Dialog>
-//         ) : (
-//             <Button variant="outline" size="sm" disabled={true} className="w-full md:w-auto opacity-50 cursor-not-allowed">
-//                 <BookOpen className="mr-2 h-4 w-4" />
-//                 No Preview
-//             </Button>
-//         )
-//     );
-// };
-
-// const Comment = ({ comment }) => {
-//     const { user, text, createdAt } = comment;
-//     if (!user) return null;
-
-//     const userMeta = [
-//         user.branch,
-//         user.year ? `Year ${user.year}` : null,
-//     ].filter(Boolean).join(' • ');
-
-//     return (
-//         <div className="flex items-start space-x-3 py-3 animate-in fade-in duration-300">
-//             <Avatar className="h-8 w-8">
-//                 <AvatarImage src={user.profilePicture} alt={user.name} />
-//                 <AvatarFallback>{user.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
-//             </Avatar>
-//             <div className="flex-1">
-//                 <div className="flex flex-wrap items-baseline space-x-2">
-//                     <span className="font-semibold text-sm">{user.name}</span>
-//                     <span className="text-xs text-muted-foreground">{userMeta}</span>
-//                 </div>
-//                 <p className="text-sm text-foreground mt-1">{text}</p>
-//                 <span className="text-xs text-muted-foreground mt-1">
-//                     {new Date(createdAt).toLocaleDateString()}
-//                 </span>
-//             </div>
-//         </div>
-//     );
-// };
-
-// const FileCard = ({ file, currentUser }) => {
-//     const [comment, setComment] = React.useState("");
-//     const [isCommentsOpen, setIsCommentsOpen] = React.useState(false);
-
-//     const [isUpvoted, setIsUpvoted] = React.useState(false);
-//     const [isDownvoted, setIsDownvoted] = React.useState(false);
-
-//     const [upvoteCount, setUpvoteCount] = React.useState(file.upvotes ? file.upvotes.length : 0);
-//     const [downvoteCount, setDownvoteCount] = React.useState(file.downvotes ? file.downvotes.length : 0);
-
-//     React.useEffect(() => {
-//         currentUser?.upvotes.includes(file._id) && setIsUpvoted(true);
-//         currentUser?.donwvotes.includes(file._id) && setIsDownvoted(true);
-//     }, []);
-
-//     const handleDownload = (url) => {
-//         window.open(url, '_blank');
-//     }
-
-//     const isPreviewable = file.secure_url && file.secure_url !== '#' && file.secure_url !== '';
-//     const formattedType = file.resource_type
-//         ? file.resource_type.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-//         : 'File';
-
-//     return (
-//         <Card className="p-0 w-full shadow-sm hover:shadow-md transition-shadow overflow-hidden border-l-4 border-l-primary/40 animate-in fade-in slide-in-from-bottom-4 duration-500">
-//             <div className="flex flex-col md:flex-row">
-//                 <div className="w-full md:w-32 bg-muted/30 flex items-center justify-center border-b md:border-b-0 md:border-r border-border/60 min-h-[120px]">
-//                     {isPreviewable ? (
-//                         <div className="flex flex-col items-center text-primary/80">
-//                             <BookOpen className="h-8 w-8 mb-1 opacity-50" />
-//                             <span className="text-[10px] font-medium text-muted-foreground">Preview</span>
-//                         </div>
-//                     ) : (
-//                         <div className="flex flex-col items-center text-muted-foreground">
-//                             <FileText className="h-8 w-8 mb-1 opacity-50" />
-//                             <span className="text-[10px]">Doc</span>
-//                         </div>
-//                     )}
-//                 </div>
-
-//                 <div className="flex-1 p-4 flex flex-col gap-3">
-//                     <div>
-//                         <div className="flex justify-between items-start gap-2">
-//                             <h3 className="font-bold text-lg text-primary line-clamp-1">
-//                                 {file.original_File_Name}
-//                             </h3>
-//                             <Badge variant={file.resource_type === 'PYQ' ? 'destructive' : 'secondary'} className="shrink-0 capitalize">
-//                                 {formattedType}
-//                             </Badge>
-//                         </div>
-
-//                         <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted-foreground">
-//                             <span className="flex items-center gap-1"><BookOpenCheck className="w-3 h-3" /> {file.subject}</span>
-//                             <Separator orientation="vertical" className="h-3" />
-//                             <span>{file.course}</span>
-//                             {file.Branch && <span>• {file.Branch}</span>}
-//                             {file.semester && <span>• Sem {file.semester}</span>}
-//                         </div>
-//                     </div>
-
-//                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-auto pt-2">
-//                         <div className="flex items-center gap-2 bg-muted/40 px-3 py-1 rounded-full border self-start">
-//                             <Button variant="ghost" size="icon" className={`h-6 w-6 ${isUpvoted ? "text-green-600" : ""}`}>
-//                                 <ArrowUp className="h-4 w-4" />
-//                             </Button>
-//                             <span className="text-xs font-medium">{upvoteCount}</span>
-//                             <Separator orientation="vertical" className="h-4" />
-//                             <Button variant="ghost" size="icon" className={`h-6 w-6 ${isDownvoted ? "text-red-600" : ""}`}>
-//                                 <ArrowDown className="h-4 w-4" />
-//                             </Button>
-//                             <span className="text-xs font-medium">{downvoteCount}</span>
-//                         </div>
-
-//                         <div className="flex items-center gap-2 w-full sm:w-auto">
-//                             <DocumentPreviewDialog file_name={file.original_File_Name} secure_url={file.secure_url} />
-//                             <Button onClick={() => handleDownload(file.secure_url)} variant="default" size="sm" className="w-full sm:w-auto">
-//                                 <Download className="h-4 w-4 mr-2" /> Download
-//                             </Button>
-//                         </div>
-//                     </div>
-//                 </div>
-//             </div>
-
-//             {/* <div
-//                 className="bg-muted/20 px-4 py-2 text-xs text-muted-foreground border-t flex items-center gap-2 cursor-pointer hover:bg-muted/40 transition-colors"
-//                 onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-//             >
-//                 <MessageSquare className="h-3 w-3" />
-//                 <span>{file.comments?.length || 0} Comments</span>
-//             </div> */}
-
-//             {isCommentsOpen && (
-//                 <div className="bg-muted/10 border-t p-4 animate-in slide-in-from-top-2">
-//                     <div className="space-y-2 max-h-[200px] overflow-y-auto mb-3">
-//                         {file.comments?.length > 0 ? (
-//                             file.comments.map(c => <Comment key={c._id} comment={c} />)
-//                         ) : (
-//                             <p className="text-xs text-muted-foreground italic">No comments yet.</p>
-//                         )}
-//                     </div>
-//                     <div className="flex gap-2">
-//                         <Input
-//                             className="h-8 text-xs"
-//                             placeholder="Write a comment..."
-//                             value={comment}
-//                             onChange={(e) => setComment(e.target.value)}
-//                         />
-//                         <Button size="sm" className="h-8"><Send className="h-3 w-3" /></Button>
-//                     </div>
-//                 </div>
-//             )}
-//         </Card>
-//     );
-// };
-
 // --- MAIN PAGE ---
 
 export default function UserProfilePage() {
@@ -312,7 +134,6 @@ export default function UserProfilePage() {
     // --- EFFECT 1: Fetch User on Mount ---
     React.useEffect(() => {
         const initUser = async () => {
-            setIsUserLoading(true);
             try {
                 // Fetch logged in user
                 const tokenUser = await decodeJWT();
@@ -321,7 +142,7 @@ export default function UserProfilePage() {
                 // Fetch Profile User
                 const user = await findUserById(userId);
 
-                (userId === tokenUser._id) && setIsFollowingDisabled(true);
+                (userId === tokenUser?._id) && setIsFollowingDisabled(true);
 
                 if (user) {
                     setUserProfile(user);
@@ -363,6 +184,8 @@ export default function UserProfilePage() {
 
                 const fetchedFiles = await findFiles({ uploadedByUser: userId });
 
+                // setFiles(response.data);
+                // setTotalFilesCount(response.pageCount);
                 setFiles(fetchedFiles);
                 setTotalFilesCount(fetchedFiles.length);
             } catch (error) {
@@ -449,20 +272,45 @@ export default function UserProfilePage() {
 
     // --- RENDER: LOADING STATE (User) ---
     if (isUserLoading) {
-        return (
-            <div className="h-[90vh] w-full flex flex-col items-center justify-center space-y-4">
-                <LoaderCircle className="animate-spin h-12 w-12 text-primary" />
-                <p className="text-muted-foreground animate-pulse">Loading profile...</p>
-            </div>
-        );
+        return <UserIdSkeleton />;
     }
 
     // --- RENDER: NOT FOUND STATE ---
     if (!userProfile) {
         return (
-            <div className="p-10 h-[90vh] flex flex-col items-center justify-center text-center space-y-4">
-                <h2 className="text-4xl font-bold">User Not Found</h2>
-                <Button onClick={() => window.history.back()}>Go Back</Button>
+            <div className="flex h-[80vh] w-full flex-col items-center justify-center bg-background px-4 text-center animate-in fade-in duration-500">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted mb-6">
+                    <UserX className="h-10 w-10 text-muted-foreground" />
+                </div>
+
+                <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                    Profile Not Found
+                </h2>
+
+                <p className="mt-2 max-w-[400px] text-muted-foreground">
+                    The user profile you are looking for doesn&apos;t exist or may have been moved.
+                    Please check the URL or try searching for another student.
+                </p>
+
+                <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                    <Button
+                        variant="outline"
+                        onClick={() => window.history.back()}
+                        className="gap-2"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Go Back
+                    </Button>
+
+                    <Button
+                        asChild
+                    >
+                        <Link className="flex items-center justify-center gap-3" href="/">
+                            <Home className="h-4 w-4" />
+                            Return Home
+                        </Link>
+                    </Button>
+                </div>
             </div>
         );
     }

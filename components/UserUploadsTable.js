@@ -147,14 +147,6 @@ export default function UserUploadsTable({ user }) { // Using exampleUploads for
     const [searchQuery, setSearchQuery] = useState('');
     const [filterType, setFilterType] = useState('all');
 
-    // if (!user) {
-    //     return (
-    //         <div className='flex items-center justify-center h-[80dvh]'>
-    //             <LoaderCircle className='animate-spin h-8 w-8 text-primary' />
-    //         </div>
-    //     )
-    // }
-
     // Handler for the delete operation (Placeholder)
     const handleDelete = async (fileId, fileCloudinaryId) => {
         setIsDeleting(true);
@@ -220,7 +212,7 @@ export default function UserUploadsTable({ user }) { // Using exampleUploads for
     // --- Component Render ---
     return (
         // Max-width constraint for professionalism on large screens (max-w-7xl)
-        <div className="mx-auto max-w-[1500px] mb-10 px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8 md:pt-8 pb-8">
             <ToastContainer />
 
             <h2 className="text-3xl font-bold tracking-tight mb-6">Your Uploaded Resources 📚</h2>

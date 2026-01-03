@@ -1,3 +1,4 @@
+import getRandomProfilePic from '@/lib/randomProfile';
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
@@ -20,7 +21,7 @@ const userSchema = new mongoose.Schema({
   },
   profilePicture: {
     type: String,
-    default: '/images/profile-pics/13848365.jpg' // Provide a default image path
+    default: getRandomProfilePic()
   },
   course: {
     type: String,

@@ -15,14 +15,7 @@ import {
 // --- UI Imports (shadcn/ui) ---
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-    DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import {
-    Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-} from "@/components/ui/select"
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
 } from "@/components/ui/dialog"
@@ -212,10 +205,9 @@ export default function FileCard({ file, user }) {
             return null
         }
 
-        setIsReportDialogOpen(true);
         setReportedFileId(fileId);
         setReportedFileName(fileName);
-        toast.info("Feedback sent successfully. We will catch you later.", { autoClose: 3000, position: "bottom-right", theme })
+        setIsReportDialogOpen(true);
     }
 
     const handleDownload = async (fileId, fileUrl, fileName = 'download') => {
@@ -395,17 +387,19 @@ export default function FileCard({ file, user }) {
                             </Button> */}
 
                             <div className="flex items-center justify-center gap-2">
-                                <div className="flex items-center justify-center gap-2.5 text-accent-foreground text-sm"><DownloadIcon className="h-5 w-5" /> {downloadCount}</div>
-                                <Button onClick={shareContent} variant="ghost">
-                                    <ExternalLink className="h-5 w-5" />
-                                </Button>
+                                <div className="flex items-center justify-center gap-2.5 text-accent-foreground text-sm">
+                                    <DownloadIcon className="h-4 w-4" /> {downloadCount}
+                                </div>
+                                <div onClick={shareContent} className="ml-2">
+                                    <ExternalLink className="h-4 w-4 ml-2" />
+                                </div>
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleReport(file._id, file.original_File_Name)}
                                     className={isReportDialogOpen && "bg-muted"}
                                 >
-                                    <Flag className="h-5 w-5 text-red-500" />
+                                    <Flag className="h-4 w-4 text-red-500" />
                                 </Button>
                             </div>
                         </div>

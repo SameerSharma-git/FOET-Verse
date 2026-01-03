@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { sendEmailAction } from "@/lib/actions/emailActions";
 import { updateFile } from "@/lib/actions/fileActions";
+import { toast, ToastContainer } from "react-toastify"
 
 export function ReportFileDialog({ open, setOpen, loggedUserId, loggedUserEmail, reportedFileId, reportedFileName }) {
     const [formData, setFormData] = useState({
@@ -37,6 +38,7 @@ export function ReportFileDialog({ open, setOpen, loggedUserId, loggedUserEmail,
                 subject: formData.concern,
                 htmlContent
             })
+            toast.info("Feedback sent successfully. We will catch you later.", { autoClose: 3000, position: "bottom-right", theme })
         } catch (error) {
             console.error("Error occured while reporting: ", error.message);
         }
@@ -48,6 +50,7 @@ export function ReportFileDialog({ open, setOpen, loggedUserId, loggedUserEmail,
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
+            <ToastContainer />
             {/* <DialogTrigger asChild>
                 <Button variant="outline">Report an Issue</Button>
             </DialogTrigger> */}

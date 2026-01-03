@@ -77,14 +77,6 @@ export default function Page() {
             </Breadcrumb>
           </div>
         </header>
-        {/* <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-          </div>
-          <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
-        </div> */}
 
         {secondSelect === "Profile" && (
           <UserProfileDashboard user={user} />
@@ -92,8 +84,8 @@ export default function Page() {
 
         {secondSelect === "Upload A File" && (
           <section>
-            <div className="min-h-screen pt-10 md:pt-8 transition-colors duration-500">
-              <main className="w-full pb-12 mx-auto px-4 max-w-2xl">
+            <div className="transition-colors duration-500">
+              <main className="w-full md:pb-12 mx-auto px-4 max-w-2xl">
                 <PdfUploader />
               </main>
             </div>

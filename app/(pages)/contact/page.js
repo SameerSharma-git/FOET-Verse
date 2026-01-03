@@ -194,7 +194,7 @@ export default function ContactPage() {
                 control={form.control}
                 name="category"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={"overflow-x-auto"}>
                     <FormLabel>Category</FormLabel>
                     <Select
                       onValueChange={field.onChange}

@@ -28,6 +28,7 @@ export async function POST(request) {
 
         //  EXTRACT FILE AND METADATA FROM FORM DATA
         const file = formData.get('file');
+        const fileName = formData.get('fileName');
         const orignial_file_name = file.name;
         const branch = formData.get('branch');
         const subject = formData.get('subject');
@@ -108,7 +109,7 @@ export async function POST(request) {
 
 
         addUploadData({
-            original_File_Name: orignial_file_name,
+            original_File_Name: fileName,
             cloudinary_Public_Id: cloudinaryPublicId,
             fileType: "pdf",
             secure_url: notesUrl,

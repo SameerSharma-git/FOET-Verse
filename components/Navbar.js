@@ -35,7 +35,7 @@ export default function Navbar() {
     [
       { href: '/', label: 'Home' },
       { href: '/resources', label: 'Resources' },
-      { href: '/contributers', label: 'Contributers' },
+      { href: '/contributors', label: 'contributors' },
       { href: '/about', label: 'About Us' },
       { href: '/contact', label: 'Contact' },
     ]
@@ -67,7 +67,7 @@ export default function Navbar() {
         [
           { href: '/', label: 'Home' },
           { href: '/resources', label: 'Resources' },
-          { href: '/contributers', label: 'Contributers' },
+          { href: '/contributors', label: 'contributors' },
           { href: '/dashboard', label: 'Dashboard' },
           { href: '/about', label: 'About Us' },
           { href: '/contact', label: 'Contact' },
@@ -167,7 +167,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={cn(`text-center py-0 xl:py-3 text-[16px] font-semibold text-gray-600 dark:text-gray-200 dark:hover:text-gray-50 hover:text-gray-900 rounded-md transition duration-300 ${pathname === link.href && "dark:text-gray-50 text-gray-900 font-bold pointer-events-none"}`)}
+                className={cn(`text-center py-0 xl:py-3 text-[16px] font-semibold text-gray-600 dark:text-gray-200 dark:hover:text-white hover:text-gray-900 rounded-md transition duration-300 ${pathname === link.href && "dark:text-white text-gray-900 font-bold pointer-events-none"}`)}
               >
                 {link.label}
               </Link>
@@ -189,7 +189,7 @@ export default function Navbar() {
           <div className='ml-4 items-center justify-center flex'><ModeToggle /></div>
           <div className='ml-2 items-center justify-center flex'>
             {isSignedIn && (
-              <ProfileImage src={user.profilePicture} />
+              <ProfileImage src={user?.profilePicture} />
             )}
           </div>
         </div>
@@ -245,7 +245,7 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsOpen(false)} // Close menu on click
-                  className={`ml-5 pb-1.5 text-xl font-semibold text-gray-600 dark:text-gray-200 dark:hover:text-gray-50 hover:text-gray-900 rounded-md transition duration-300 ${pathname === link.href && "dark:text-gray-50 text-gray-900 pointer-events-none"}`}
+                  className={`ml-5 text-xl font-semibold text-gray-600 dark:text-gray-200 dark:hover:text-white hover:text-gray-900 rounded-md transition duration-300 ${pathname === link.href && "dark:text-white text-gray-900 pointer-events-none"}`}
                 >
                   {link.label}
                 </Link>
@@ -257,12 +257,14 @@ export default function Navbar() {
                   <Button variant="outline" size="default" asChild><Link href="/signup">Sign Up</Link></Button>
                 </ButtonGroup>
               ) : (
-                <ButtonGroup className="ml-2" aria-label="Authentication Actions">
-                  <Button className="flex flex-col items-start justify-center" disabled={isLoggingOut} onClick={handleLogOut} variant="outline" size="default" >
-                    <p className='text-primary text-sm'>{user?.email}</p>
-                    {isLoggingOut ? (<LoaderCircle className='animate-spin w-5 h-5'></LoaderCircle>) : "Log Out"}
-                  </Button>
-                </ButtonGroup>
+                <div className='flex justify-start items-center gap-2 ml-5'>
+                  <ProfileImage src={user?.profilePicture} />
+                  <ButtonGroup className="ml-2" aria-label="Authentication Actions">
+                    <Button className="flex flex-col items-start justify-center" disabled={isLoggingOut} onClick={handleLogOut} variant="outline" size="default" >
+                      {isLoggingOut ? (<LoaderCircle className='animate-spin w-5 h-5'></LoaderCircle>) : "Log Out"}
+                    </Button>
+                  </ButtonGroup>
+                </div>
               )}
 
               <div className='w-[90%] mx-auto h-0.5 mt-4 bg-zinc-700 dark:bg-white'></div>

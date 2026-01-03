@@ -75,7 +75,7 @@ export default function ContributorsPage() {
     );
 
   return (
-    <div className="min-h-screen px-6 md:p-12">
+    <div className="min-h-screen mt-4 md:mt-0 mb-7 md:mb-0 px-6 md:p-12">
       <div className="max-w-7xl mx-auto">
 
         {/* --- Header Section --- */}

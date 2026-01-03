@@ -16,10 +16,10 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { useTheme } from 'next-themes';
-import { updateUser } from '@/lib/actions/userActions';
+import { Input } from './ui/input';
 
 // --- DUMMY DATA ---
-const BRANCHES = ['CS', 'ME', 'EE', 'CE', 'EC'];
+const BRANCHES = ['COMMON', 'CS', 'ME', 'EE', 'CE', 'EC'];
 const YEAR_OPTIONS = ['1', '2', '3', '4'];
 const SEMESTER_OPTIONS = ['1', '2'];
 // const RESOURCE_TYPE_OPTIONS = ['notes', 'PYQ', 'DPP', 'syllabus', 'marking-scheme', 'prev-year-paper', 'other'];
@@ -69,6 +69,7 @@ export default function UploadNotesForm() {
   const [formData, setFormData] = useState({
     branch: '',
     subject: '',
+    fileName: '',
     year: '',
     semester: '',
     resource_type: '',
@@ -177,7 +178,7 @@ export default function UploadNotesForm() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
 
-        {/* 2. Branch Select (Required) */}
+        {/* Branch Select (Required) */}
         <div>
           <Label htmlFor="branch">Branch <span className="text-red-500">*</span></Label>
           <Select onValueChange={(value) => handleSelectChange('branch', value)} value={formData.branch}>
@@ -186,7 +187,7 @@ export default function UploadNotesForm() {
           </Select>
         </div>
 
-        {/* 3. Subject Select (Required & Dependent) */}
+        {/* Subject Select (Required & Dependent) */}
         <div>
           <Label htmlFor="subject">Subject <span className="text-red-500">*</span></Label>
           <Select onValueChange={(value) => handleSelectChange('subject', value)} value={formData.subject} disabled={!formData.branch || availableSubjects.length === 0}>
@@ -195,7 +196,13 @@ export default function UploadNotesForm() {
           </Select>
         </div>
 
-        {/* 4 & 5. Year and Semester (Optional) - Side-by-side */}
+        {/* FileName Select (Required) */}
+        <div>
+          <Label className={"mb-1"} htmlFor="fileName">Filename <span className="text-red-500">*</span></Label>
+          <Input value={formData?.fileName || ""} onChange={handleInputChange} id="fileName" name="fileName" placeholder="Add a Filename (This will be shown to users)" />
+        </div>
+
+        {/* Year and Semester (Optional) - Side-by-side */}
         <div className="flex gap-4">
           <div className="flex-1">
             <Label htmlFor="year">Year (Optional)</Label>
@@ -213,7 +220,7 @@ export default function UploadNotesForm() {
           </div>
         </div>
 
-        {/* 6. RESOURCE TYPE Select (Required) */}
+        {/* RESOURCE TYPE Select (Required) */}
         <div>
           <Label htmlFor="resource_type">Resource Type <span className="text-red-500">*</span></Label>
           <Select onValueChange={(value) => handleSelectChange('resource_type', value)} value={formData.resource_type}>
@@ -222,7 +229,7 @@ export default function UploadNotesForm() {
           </Select>
         </div>
 
-        {/* 7. DROPZONE ELEMENT (Single File PDF) */}
+        {/* DROPZONE ELEMENT (Single File PDF) */}
         <Dropzone onDropAccepted={onDropAccepted} acceptedFiles={files} onFileRemove={handleFileRemove} {...dropzoneConfig} />
 
         {isSubmitting && (
